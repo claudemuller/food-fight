@@ -1,6 +1,7 @@
 #include "game.h"
 #include "arena.h"
 #include "asset_manager.h"
+#include "entity.h"
 #include "gfx.h"
 #include "input.h"
 #include "state.h"
@@ -43,6 +44,11 @@ bool game_init(MemoryArena* mem)
 
     if (!tilemap_init(tilemap_tex)) {
         util_error("Failed to init tilemap");
+        return false;
+    }
+
+    if (!entmgr_init(mem)) {
+        util_error("Failed to init entity manager");
         return false;
     }
 
@@ -102,6 +108,8 @@ static void render(void)
     SDL_RenderClear(renderer);
 
     tilemap_render_tileset();
+
+    entity_render();
 
     SDL_SetRenderDrawColor(renderer, paleblue_d.r, paleblue_d.g, paleblue_d.b, paleblue_d.a);
 

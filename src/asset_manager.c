@@ -10,7 +10,7 @@ bool assetmgr_init(MemoryArena* gmem, SDL_Renderer* r)
 {
     mgr = (AssetManager*)arena_alloc_aligned(gmem, sizeof(AssetManager), 16);
     if (!mgr) {
-        util_error("Failed to init asset manager");
+        util_error("Failed to allocate for asset manager");
         return false;
     }
 

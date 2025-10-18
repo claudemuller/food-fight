@@ -1,12 +1,14 @@
 #include "tilemap.h"
+#include "entity.h"
 #include "gfx.h"
 #include "input.h"
 #include "utils.h"
+#include <SDL3/SDL_rect.h>
 #include <math.h>
 
 static Tilemap tm;
 
-static void update_tileset(const f32 mx, const f32 my);
+static bool update_tileset(const f32 mx, const f32 my);
 
 bool tilemap_init(SDL_Texture* tex)
 {
@@ -34,11 +36,19 @@ void tilemap_update(GameState* state)
     f32 mx = mouse_snapshot.x / SCALE;
     f32 my = mouse_snapshot.y / SCALE;
 
-    if (input_mouse_pressed(INPUT_MOUSE_BTN_LEFT)) {
-        // u32 tilemapx = entmgr_new();
-    }
+    if (update_tileset(mx, my)) return;
 
-    update_tileset(mx, my);
+    if (input_mouse_pressed(INPUT_MOUSE_BTN_LEFT)) {
+        Entity tile = entity_create();
+        SDL_FRect src = {
+            .x = tm.tileset.selected.tile.x * tm.tileset.tile_size,
+            .y = tm.tileset.selected.tile.y * tm.tileset.tile_size,
+            .w = tm.tileset.tile_size,
+            .h = tm.tileset.tile_size,
+        };
+        transform_add(tile, (vec2){.x = mx - (tm.tile_size * 0.5f), .y = my - (tm.tile_size * 0.5f)});
+        sprite_add(tile, tm.tileset.texture, (vec2){.w = tm.tile_size, .h = tm.tile_size}, src, false);
+    }
 }
 
 void tilemap_render_tileset(void)
@@ -94,7 +104,7 @@ void tilemap_render_tileset(void)
 
 // ------------------------------------------------------------------------------------------------
 
-static void update_tileset(const f32 mx, const f32 my)
+static bool update_tileset(const f32 mx, const f32 my)
 {
     tm.tileset.inside = false;
 
@@ -119,5 +129,9 @@ static void update_tileset(const f32 mx, const f32 my)
             // TODO: check if on selected tile, toggle if so
             // tm.selected.selected = !tm.selected.selected;
         }
+
+        return true;
     }
+
+    return false;
 }
