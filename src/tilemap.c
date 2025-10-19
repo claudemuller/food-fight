@@ -11,7 +11,7 @@
 static Tilemap tm;
 
 static void update_tilemap(const f32 mx, const f32 my);
-static void render_tilemap(SDL_Renderer* renderer);
+static void render_tilemap(SDL_Renderer* renderer, const f32 mx, const f32 my);
 static bool update_tileset(const f32 mx, const f32 my);
 static void render_tileset(SDL_Renderer* renderer);
 
@@ -44,8 +44,8 @@ bool tilemap_init(MemoryArena* mem, SDL_Texture* tex)
 void tilemap_update(GameState* state)
 {
     MouseSnapshot mouse_snapshot = input_get_mouse_snapshot();
-    f32 mx = mouse_snapshot.x / SCALE;
-    f32 my = mouse_snapshot.y / SCALE;
+    f32 mx = mouse_snapshot.x; // / SCALE;
+    f32 my = mouse_snapshot.y; // / SCALE;
 
     if (update_tileset(mx, my)) return;
     update_tilemap(mx, my);
@@ -54,7 +54,11 @@ void tilemap_update(GameState* state)
 void tilemap_render_tileset(void)
 {
     SDL_Renderer* renderer = gfx_get_renderer();
-    render_tilemap(renderer);
+    MouseSnapshot mouse_snapshot = input_get_mouse_snapshot();
+    f32 mx = mouse_snapshot.x; // / SCALE;
+    f32 my = mouse_snapshot.y; // / SCALE;
+
+    render_tilemap(renderer, mx, my);
     render_tileset(renderer);
 }
 
@@ -63,8 +67,8 @@ void tilemap_render_tileset(void)
 static void update_tilemap(const f32 mx, const f32 my)
 {
     if (input_mouse_pressed(INPUT_MOUSE_BTN_LEFT)) {
-        u16 x = (u16)floorf(mx / tm.width);
-        u16 y = (u16)floorf(my / tm.width);
+        u16 gridx = (u16)floorf(mx / tm.tile_size);
+        u16 gridy = (u16)floorf(my / tm.tile_size);
 
         Entity tile = entity_create();
         SDL_FRect src = {
@@ -73,22 +77,21 @@ static void update_tilemap(const f32 mx, const f32 my)
             .w = tm.tileset.tile_size,
             .h = tm.tileset.tile_size,
         };
-        transform_add(tile, (vec2){.x = x * tm.tile_size, .y = y * tm.tile_size});
+        transform_add(tile, (vec2){.x = gridx * tm.tile_size, .y = gridy * tm.tile_size});
         sprite_add(tile, tm.tileset.texture, (vec2){.w = tm.tile_size, .h = tm.tile_size}, src, false);
     }
 }
 
-static void render_tilemap(SDL_Renderer* renderer)
+static void render_tilemap(SDL_Renderer* renderer, const f32 mx, const f32 my)
 {
-    MouseSnapshot mouse_snapshot = input_get_mouse_snapshot();
-    u16 mx = (u16)floorf(mouse_snapshot.x / tm.width);
-    u16 my = (u16)floorf(mouse_snapshot.y / tm.width);
+    u16 gridx = (u16)floorf(mx / tm.tile_size);
+    u16 gridy = (u16)floorf(my / tm.tile_size);
 
     for (size_t i = 0; i < MAX_NUM_TILES; ++i) {
-        u16 x = i / tm.width;
-        u16 y = i % tm.width;
+        u16 x = i % tm.width;
+        u16 y = i / tm.width;
 
-        if (x == mx && y == my) {
+        if (x == gridx && y == gridy) {
             SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
         } else {
             SDL_SetRenderDrawColor(renderer, paleblue_des.r, paleblue_des.g, paleblue_des.b, paleblue_des.a);
