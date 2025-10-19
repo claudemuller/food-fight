@@ -46,7 +46,7 @@ void entity_render(void)
             .h = s->size.h, // * state->scale,
         };
 
-        SDL_RenderTexture(gfx_get_renderer(), s->texture, &s->src, &dst);
+        // SDL_RenderTexture(gfx_get_renderer(), s->texture, &s->src, &dst);
     }
 }
 

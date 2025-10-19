@@ -3,15 +3,19 @@
 #include "entity.h"
 #include "gfx.h"
 #include "input.h"
+#include "state.h"
 #include "utils.h"
 #include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
 #include <math.h>
 #include <stddef.h>
 
 static Tilemap tm;
 
-static void update_tilemap(const f32 mx, const f32 my);
-static void render_tilemap(SDL_Renderer* renderer, const f32 mx, const f32 my);
+static void render_map(GameState* state, SDL_Renderer* renderer, const f32 mx, const f32 my);
+
+static void update_edit_mode(const f32 mx, const f32 my);
+static void render_edit_mode(SDL_Renderer* renderer, const f32 mx, const f32 my);
 static bool update_tileset(const f32 mx, const f32 my);
 static void render_tileset(SDL_Renderer* renderer);
 
@@ -44,45 +48,40 @@ bool tilemap_init(MemoryArena* mem, SDL_Texture* tex)
 void tilemap_update(GameState* state)
 {
     MouseSnapshot mouse_snapshot = input_get_mouse_snapshot();
-    f32 mx = mouse_snapshot.x; // / SCALE;
-    f32 my = mouse_snapshot.y; // / SCALE;
+    f32 mx = mouse_snapshot.x / SCALE;
+    f32 my = mouse_snapshot.y / SCALE;
 
-    if (update_tileset(mx, my)) return;
-    update_tilemap(mx, my);
+    if (state->state == GAME_STATE_EDITING) {
+        if (update_tileset(mx, my)) return;
+
+        update_edit_mode(mx, my);
+    }
 }
 
-void tilemap_render_tileset(void)
+void tilemap_render(GameState* state)
 {
     SDL_Renderer* renderer = gfx_get_renderer();
     MouseSnapshot mouse_snapshot = input_get_mouse_snapshot();
-    f32 mx = mouse_snapshot.x; // / SCALE;
-    f32 my = mouse_snapshot.y; // / SCALE;
+    f32 mx = mouse_snapshot.x / SCALE;
+    f32 my = mouse_snapshot.y / SCALE;
 
-    render_tilemap(renderer, mx, my);
-    render_tileset(renderer);
+    // Render positioning grid
+    if (state->state == GAME_STATE_EDITING) {
+        render_edit_mode(renderer, mx, my);
+    }
+
+    // Render game map
+    render_map(state, renderer, mx, my);
+
+    // Render editing mode UI
+    if (state->state == GAME_STATE_EDITING) {
+        render_tileset(renderer);
+    }
 }
 
 // ------------------------------------------------------------------------------------------------
 
-static void update_tilemap(const f32 mx, const f32 my)
-{
-    if (input_mouse_pressed(INPUT_MOUSE_BTN_LEFT)) {
-        u16 gridx = (u16)floorf(mx / tm.tile_size);
-        u16 gridy = (u16)floorf(my / tm.tile_size);
-
-        Entity tile = entity_create();
-        SDL_FRect src = {
-            .x = tm.tileset.selected.tile.x * tm.tileset.tile_size,
-            .y = tm.tileset.selected.tile.y * tm.tileset.tile_size,
-            .w = tm.tileset.tile_size,
-            .h = tm.tileset.tile_size,
-        };
-        transform_add(tile, (vec2){.x = gridx * tm.tile_size, .y = gridy * tm.tile_size});
-        sprite_add(tile, tm.tileset.texture, (vec2){.w = tm.tile_size, .h = tm.tile_size}, src, false);
-    }
-}
-
-static void render_tilemap(SDL_Renderer* renderer, const f32 mx, const f32 my)
+static void render_map(GameState* state, SDL_Renderer* renderer, const f32 mx, const f32 my)
 {
     u16 gridx = (u16)floorf(mx / tm.tile_size);
     u16 gridy = (u16)floorf(my / tm.tile_size);
@@ -91,16 +90,73 @@ static void render_tilemap(SDL_Renderer* renderer, const f32 mx, const f32 my)
         u16 x = i % tm.width;
         u16 y = i / tm.width;
 
-        if (x == gridx && y == gridy) {
-            SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
-        } else {
-            SDL_SetRenderDrawColor(renderer, paleblue_des.r, paleblue_des.g, paleblue_des.b, paleblue_des.a);
-        }
+        SDL_FRect dst = (SDL_FRect){
+            .x = tm.tiles[i].x, //- (s->is_fixed ? 0 : state->camera.x), // * state->scale,
+            .y = tm.tiles[i].y, //- (s->is_fixed ? 0 : state->camera.y), // * state->scale,
+            .w = tm.tile_size,  // * state->scale,
+            .h = tm.tile_size,  // * state->scale,
+        };
+
+        SDL_RenderTexture(gfx_get_renderer(), tm.tileset.texture, &tm.tiles[i].src, &dst);
+    }
+}
+
+static void update_edit_mode(const f32 mx, const f32 my)
+{
+    if (input_mouse_pressed(INPUT_MOUSE_BTN_LEFT)) {
+        u16 gridx = (u16)floorf(mx / tm.tile_size);
+        u16 gridy = (u16)floorf(my / tm.tile_size);
+
+        // Entity tile = entity_create();
+        tm.tiles[(gridy * tm.width) + gridx] = (Tile){
+            .x = gridx * tm.tile_size,
+            .y = gridy * tm.tile_size,
+            .src =
+                {
+                    .x = tm.tileset.selected.tile.x * tm.tileset.tile_size,
+                    .y = tm.tileset.selected.tile.y * tm.tileset.tile_size,
+                    .w = tm.tileset.tile_size,
+                    .h = tm.tileset.tile_size,
+                },
+        };
+        // transform_add(tile, (vec2){.x = gridx * tm.tile_size, .y = gridy * tm.tile_size});
+        // sprite_add(tile, tm.tileset.texture, (vec2){.w = tm.tile_size, .h = tm.tile_size}, src, false);
+    }
+}
+
+static void render_edit_mode(SDL_Renderer* renderer, const f32 mx, const f32 my)
+{
+    u16 gridx = (u16)floorf(mx / tm.tile_size);
+    u16 gridy = (u16)floorf(my / tm.tile_size);
+
+    for (size_t i = 0; i < MAX_NUM_TILES; ++i) {
+        u16 x = i % tm.width;
+        u16 y = i / tm.width;
+
+        // if (x == gridx && y == gridy) {
+        //     SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
+        // } else {
+        SDL_SetRenderDrawColor(renderer, paleblue_des.r, paleblue_des.g, paleblue_des.b, paleblue_des.a);
+        // }
 
         SDL_RenderRect(renderer,
                        &(SDL_FRect){
                            .x = x * tm.tile_size,
                            .y = y * tm.tile_size,
+                           .w = tm.tile_size,
+                           .h = tm.tile_size,
+                       });
+
+        // SDL_SetRenderDrawColor(renderer, paleblue_d.r, paleblue_d.g, paleblue_d.b, paleblue_d.a);
+        // SDL_RenderDebugTextFormat(renderer, x * tm.tile_size + 2, y * tm.tile_size + 2, "%zu", i);
+    }
+
+    if (!tm.tileset.inside) {
+        SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
+        SDL_RenderRect(renderer,
+                       &(SDL_FRect){
+                           .x = gridx * tm.tile_size,
+                           .y = gridy * tm.tile_size,
                            .w = tm.tile_size,
                            .h = tm.tile_size,
                        });

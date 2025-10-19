@@ -9,8 +9,8 @@
 #include <stdbool.h>
 
 #define MAP_TILE_SIZE 18
-#define MAP_ROW_TILES (int)(WINDOW_HEIGHT / SCALE / MAP_TILE_SIZE)
-#define MAP_COL_TILES (int)(WINDOW_WIDTH / SCALE / MAP_TILE_SIZE)
+#define MAP_ROW_TILES (int)(WINDOW_HEIGHT / MAP_TILE_SIZE)
+#define MAP_COL_TILES (int)(WINDOW_WIDTH / MAP_TILE_SIZE)
 #define MAX_NUM_TILES (MAP_ROW_TILES * MAP_COL_TILES)
 
 typedef struct {
@@ -29,6 +29,8 @@ typedef struct {
 
 typedef struct {
     SDL_FRect src;
+    u16 x;
+    u16 y;
 } Tile;
 
 typedef struct {
@@ -41,6 +43,6 @@ typedef struct {
 
 bool tilemap_init(MemoryArena* mem, SDL_Texture* tex);
 void tilemap_update(GameState* state);
-void tilemap_render_tileset(void);
+void tilemap_render(GameState* state);
 
 #endif // !TILEMAP_H_
