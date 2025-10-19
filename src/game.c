@@ -12,8 +12,6 @@
 
 #define FPS 60
 #define MILLISECS_PER_FRAME 1000 / FPS
-#define WINDOW_WIDTH 1024
-#define WINDOW_HEIGHT 768
 
 static MemoryArena* game_mem;
 static GameState state;

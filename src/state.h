@@ -4,6 +4,9 @@
 #include "asset_manager.h"
 #include "input.h"
 
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
+
 #define SCALE 2.0f
 
 typedef enum {

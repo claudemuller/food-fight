@@ -5,8 +5,10 @@
 #include <SDL3/SDL.h>
 #include <stdbool.h>
 
+extern const SDL_Color red;
 extern const SDL_Color paleblue;
 extern const SDL_Color paleblue_d;
+extern const SDL_Color paleblue_des;
 
 bool gfx_init(const char* win_title, const u16 win_width, const u16 win_height);
 SDL_Window* gfx_get_window(void);

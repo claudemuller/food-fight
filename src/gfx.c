@@ -6,8 +6,10 @@
 static SDL_Window* window;
 static SDL_Renderer* renderer;
 
+const SDL_Color red = {0xff, 0x00, 0x00, 0xff};
 const SDL_Color paleblue = {0xd0, 0xdf, 0xff, 0xff};
 const SDL_Color paleblue_d = {0x63, 0x75, 0x9e, 0xff};
+const SDL_Color paleblue_des = {0xb7, 0xc2, 0xd7, 0xff};
 
 bool gfx_init(const char* win_title, const u16 win_width, const u16 win_height)
 {
