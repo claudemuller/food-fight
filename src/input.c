@@ -1,6 +1,7 @@
 #include "input.h"
 #include "state.h"
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_scancode.h>
 
 static Uint32 prev_mouse_mask;
 static MouseSnapshot curr_mouse_snapshot;
@@ -66,6 +67,7 @@ void input_process(GameState* state)
     set_key_state(kb_state[SDL_SCANCODE_RIGHT], &state->input.kb.right);
     set_key_state(kb_state[SDL_SCANCODE_ESCAPE], &state->input.kb.escape);
     set_key_state(kb_state[SDL_SCANCODE_F1], &state->input.kb.f1);
+    set_key_state(kb_state[SDL_SCANCODE_LSHIFT], &state->input.kb.lshift);
 
     f32 mx, my;
     u32 curr_mouse_mask = SDL_GetMouseState(&mx, &my);

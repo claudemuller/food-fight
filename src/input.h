@@ -17,6 +17,7 @@ typedef struct {
     KeyState right;
     KeyState escape;
     KeyState f1;
+    KeyState lshift;
 } Keyboard;
 
 typedef enum {

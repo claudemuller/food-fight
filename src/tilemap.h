@@ -14,24 +14,27 @@
 #define MAX_NUM_TILES (MAP_ROW_TILES * MAP_COL_TILES)
 
 typedef struct {
+    SDL_FRect src;
+    SDL_FRect dst;
+} Tile;
+
+typedef struct {
+    ivec2 startpos;
+    ivec2 endpos;
+    Tile tile;
+    bool is_set;
+} Brush;
+
+typedef struct {
+    Brush brush;
     SDL_Texture* texture;
     vec2 pos;
     vec2 size;
     ivec2 hovered_tile;
-    struct {
-        bool is_selected;
-        ivec2 tile;
-    } selected;
     u8 tile_size;
     u8 pitch;
     bool inside;
 } Tileset;
-
-typedef struct {
-    SDL_FRect src;
-    u16 x;
-    u16 y;
-} Tile;
 
 typedef struct {
     Tileset tileset;

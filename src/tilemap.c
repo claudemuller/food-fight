@@ -1,6 +1,5 @@
 #include "tilemap.h"
 #include "arena.h"
-#include "entity.h"
 #include "gfx.h"
 #include "input.h"
 #include "state.h"
@@ -14,8 +13,8 @@ static Tilemap tm;
 
 static void render_map(GameState* state, SDL_Renderer* renderer, const f32 mx, const f32 my);
 
-static void update_edit_mode(const f32 mx, const f32 my);
-static void render_edit_mode(SDL_Renderer* renderer, const f32 mx, const f32 my);
+static void update_edit_mode(GameState* state, const f32 mx, const f32 my);
+static void render_edit_mode(GameState* state, SDL_Renderer* renderer, const f32 mx, const f32 my);
 static bool update_tileset(const f32 mx, const f32 my);
 static void render_tileset(SDL_Renderer* renderer);
 
@@ -54,7 +53,7 @@ void tilemap_update(GameState* state)
     if (state->state == GAME_STATE_EDITING) {
         if (update_tileset(mx, my)) return;
 
-        update_edit_mode(mx, my);
+        update_edit_mode(state, mx, my);
     }
 }
 
@@ -67,7 +66,7 @@ void tilemap_render(GameState* state)
 
     // Render positioning grid
     if (state->state == GAME_STATE_EDITING) {
-        render_edit_mode(renderer, mx, my);
+        render_edit_mode(state, renderer, mx, my);
     }
 
     // Render game map
@@ -83,62 +82,52 @@ void tilemap_render(GameState* state)
 
 static void render_map(GameState* state, SDL_Renderer* renderer, const f32 mx, const f32 my)
 {
-    u16 gridx = (u16)floorf(mx / tm.tile_size);
-    u16 gridy = (u16)floorf(my / tm.tile_size);
-
     for (size_t i = 0; i < MAX_NUM_TILES; ++i) {
-        u16 x = i % tm.width;
-        u16 y = i / tm.width;
-
-        SDL_FRect dst = (SDL_FRect){
-            .x = tm.tiles[i].x, //- (s->is_fixed ? 0 : state->camera.x), // * state->scale,
-            .y = tm.tiles[i].y, //- (s->is_fixed ? 0 : state->camera.y), // * state->scale,
-            .w = tm.tile_size,  // * state->scale,
-            .h = tm.tile_size,  // * state->scale,
-        };
-
-        SDL_RenderTexture(gfx_get_renderer(), tm.tileset.texture, &tm.tiles[i].src, &dst);
+        SDL_RenderTexture(gfx_get_renderer(), tm.tileset.texture, &tm.tiles[i].src, &tm.tiles[i].dst);
     }
 }
 
-static void update_edit_mode(const f32 mx, const f32 my)
+static void update_edit_mode(GameState* state, const f32 mx, const f32 my)
 {
-    if (input_mouse_pressed(INPUT_MOUSE_BTN_LEFT)) {
-        u16 gridx = (u16)floorf(mx / tm.tile_size);
-        u16 gridy = (u16)floorf(my / tm.tile_size);
+    u16 gridx = (u16)floorf(mx / tm.tile_size);
+    u16 gridy = (u16)floorf(my / tm.tile_size);
 
-        // Entity tile = entity_create();
+    // Set the start location of the brush
+    if (input_keypressed(state->input.kb.lshift)) {
+        tm.tileset.brush.startpos.x = gridx;
+        tm.tileset.brush.startpos.y = gridy;
+    }
+
+    // Paint with brush
+    if (input_mouse_pressed(INPUT_MOUSE_BTN_LEFT)) {
         tm.tiles[(gridy * tm.width) + gridx] = (Tile){
-            .x = gridx * tm.tile_size,
-            .y = gridy * tm.tile_size,
-            .src =
+            .dst =
                 {
-                    .x = tm.tileset.selected.tile.x * tm.tileset.tile_size,
-                    .y = tm.tileset.selected.tile.y * tm.tileset.tile_size,
+                    .x = tm.tileset.brush.startpos.x * tm.tileset.tile_size,
+                    .y = tm.tileset.brush.startpos.y * tm.tileset.tile_size,
                     .w = tm.tileset.tile_size,
                     .h = tm.tileset.tile_size,
+                    // .x = gridx * tm.tile_size,
+                    // .y = gridy * tm.tile_size,
+                    // .w = tm.tileset.drag_rect.w,
+                    // .h = tm.tileset.drag_rect.h,
                 },
+            .src = tm.tileset.brush.tile.src,
         };
-        // transform_add(tile, (vec2){.x = gridx * tm.tile_size, .y = gridy * tm.tile_size});
-        // sprite_add(tile, tm.tileset.texture, (vec2){.w = tm.tile_size, .h = tm.tile_size}, src, false);
     }
 }
 
-static void render_edit_mode(SDL_Renderer* renderer, const f32 mx, const f32 my)
+static void render_edit_mode(GameState* state, SDL_Renderer* renderer, const f32 mx, const f32 my)
 {
     u16 gridx = (u16)floorf(mx / tm.tile_size);
     u16 gridy = (u16)floorf(my / tm.tile_size);
 
+    // Render grid
     for (size_t i = 0; i < MAX_NUM_TILES; ++i) {
         u16 x = i % tm.width;
         u16 y = i / tm.width;
 
-        // if (x == gridx && y == gridy) {
-        //     SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
-        // } else {
         SDL_SetRenderDrawColor(renderer, paleblue_des.r, paleblue_des.g, paleblue_des.b, paleblue_des.a);
-        // }
-
         SDL_RenderRect(renderer,
                        &(SDL_FRect){
                            .x = x * tm.tile_size,
@@ -146,20 +135,32 @@ static void render_edit_mode(SDL_Renderer* renderer, const f32 mx, const f32 my)
                            .w = tm.tile_size,
                            .h = tm.tile_size,
                        });
-
-        // SDL_SetRenderDrawColor(renderer, paleblue_d.r, paleblue_d.g, paleblue_d.b, paleblue_d.a);
-        // SDL_RenderDebugTextFormat(renderer, x * tm.tile_size + 2, y * tm.tile_size + 2, "%zu", i);
     }
 
     if (!tm.tileset.inside) {
-        SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
-        SDL_RenderRect(renderer,
-                       &(SDL_FRect){
-                           .x = gridx * tm.tile_size,
-                           .y = gridy * tm.tile_size,
-                           .w = tm.tile_size,
-                           .h = tm.tile_size,
-                       });
+        u16 rectw = tm.tile_size;
+        u16 recth = tm.tile_size;
+        u16 x = gridx;
+        u16 y = gridy;
+
+        if (input_keydown(state->input.kb.lshift)) {
+            x = tm.tileset.brush.startpos.x;
+            y = tm.tileset.brush.startpos.y;
+
+            rectw *= abs(gridx + 1 - tm.tileset.brush.startpos.x);
+            recth *= abs(gridy + 1 - tm.tileset.brush.startpos.y);
+        }
+        // if (input_keyup(state->input.kb.lshift)) {
+        //     tm.tileset.drag_rect.w = rectw;
+        //     tm.tileset.drag_rect.h = recth;
+        // }
+        SDL_FRect dst = {
+            .x = x * tm.tile_size,
+            .y = y * tm.tile_size,
+            .w = rectw,
+            .h = recth,
+        };
+        SDL_RenderTexture(renderer, tm.tileset.texture, &tm.tileset.brush.tile.src, &dst);
     }
 }
 
@@ -179,14 +180,13 @@ static bool update_tileset(const f32 mx, const f32 my)
         tm.tileset.hovered_tile.y = tiley;
 
         if (input_mouse_pressed(INPUT_MOUSE_BTN_LEFT)) {
-            if (!tm.tileset.selected.is_selected) {
-                tm.tileset.selected.is_selected = true;
+            if (!tm.tileset.brush.is_set) {
+                tm.tileset.brush.is_set = true;
             }
-            tm.tileset.selected.tile.x = tm.tileset.hovered_tile.x;
-            tm.tileset.selected.tile.y = tm.tileset.hovered_tile.y;
-
-            // TODO: check if on selected tile, toggle if so
-            // tm.selected.selected = !tm.selected.selected;
+            tm.tileset.brush.tile.src.x = tm.tileset.hovered_tile.x * tm.tileset.tile_size;
+            tm.tileset.brush.tile.src.y = tm.tileset.hovered_tile.y * tm.tileset.tile_size;
+            tm.tileset.brush.tile.src.w = tm.tileset.tile_size;
+            tm.tileset.brush.tile.src.h = tm.tileset.tile_size;
         }
 
         return true;
@@ -208,8 +208,7 @@ static void render_tileset(SDL_Renderer* renderer)
                       });
 
     if (tm.tileset.inside) {
-        SDL_SetRenderDrawColor(gfx_get_renderer(), 0xff, 0x22, 0x22, 0xff);
-
+        SDL_SetRenderDrawColor(renderer, 0xff, 0x22, 0x22, 0xff);
         SDL_RenderRect(renderer,
                        &(SDL_FRect){
                            .x = tm.tileset.pos.x + (tm.tileset.hovered_tile.x * tm.tileset.tile_size),
@@ -219,14 +218,7 @@ static void render_tileset(SDL_Renderer* renderer)
                        });
     }
 
-    if (tm.tileset.selected.is_selected) {
-        SDL_FRect src = {
-            .x = tm.tileset.selected.tile.x * tm.tileset.tile_size,
-            .y = tm.tileset.selected.tile.y * tm.tileset.tile_size,
-            .w = tm.tileset.tile_size,
-            .h = tm.tileset.tile_size,
-        };
-
+    if (tm.tileset.brush.is_set) {
         u16 brushx = tm.tileset.pos.x + tm.tileset.size.w - tm.tileset.tile_size;
         u16 brushy = tm.tileset.pos.y - tm.tileset.tile_size - 5;
 
@@ -237,7 +229,7 @@ static void render_tileset(SDL_Renderer* renderer)
             .h = tm.tileset.tile_size,
         };
 
-        SDL_RenderTexture(renderer, tm.tileset.texture, &src, &dst);
+        SDL_RenderTexture(renderer, tm.tileset.texture, &tm.tileset.brush.tile.src, &dst);
 
         SDL_SetRenderDrawColor(renderer, paleblue_d.r, paleblue_d.g, paleblue_d.b, paleblue_d.a);
         SDL_RenderDebugText(renderer, brushx - 45, brushy + 5, "Brush");
