@@ -1,4 +1,5 @@
 #include "tilemap.h"
+#include "arena.h"
 #include "entity.h"
 #include "gfx.h"
 #include "input.h"
@@ -14,13 +15,19 @@ static void render_tilemap(SDL_Renderer* renderer);
 static bool update_tileset(const f32 mx, const f32 my);
 static void render_tileset(SDL_Renderer* renderer);
 
-bool tilemap_init(SDL_Texture* tex)
+bool tilemap_init(MemoryArena* mem, SDL_Texture* tex)
 {
     tm.tile_size = MAP_TILE_SIZE;
-    tm.width = MAP_ROW_TILES;
-    tm.height = MAP_COL_TILES;
+    tm.width = MAP_COL_TILES;
+    tm.height = MAP_ROW_TILES;
     tm.tileset.texture = tex;
     SDL_GetTextureSize(tm.tileset.texture, &tm.tileset.size.w, &tm.tileset.size.h);
+
+    tm.tiles = (Tile*)arena_alloc_aligned(mem, sizeof(Tile), 16);
+    if (!tm.tiles) {
+        util_error("Failed to allocate for map tiles");
+        return false;
+    }
 
     i32 win_w, win_h;
     SDL_GetWindowSize(gfx_get_window(), &win_w, &win_h);
@@ -56,8 +63,8 @@ void tilemap_render_tileset(void)
 static void update_tilemap(const f32 mx, const f32 my)
 {
     if (input_mouse_pressed(INPUT_MOUSE_BTN_LEFT)) {
-        u16 x = (u16)floorf(mx / SCALE / MAP_COL_TILES);
-        u16 y = (u16)floorf(my / SCALE / MAP_COL_TILES);
+        u16 x = (u16)floorf(mx / tm.width);
+        u16 y = (u16)floorf(my / tm.width);
 
         Entity tile = entity_create();
         SDL_FRect src = {
@@ -66,7 +73,7 @@ static void update_tilemap(const f32 mx, const f32 my)
             .w = tm.tileset.tile_size,
             .h = tm.tileset.tile_size,
         };
-        transform_add(tile, (vec2){.x = x * SCALE * tm.tile_size, .y = y * SCALE * tm.tile_size});
+        transform_add(tile, (vec2){.x = x * tm.tile_size, .y = y * tm.tile_size});
         sprite_add(tile, tm.tileset.texture, (vec2){.w = tm.tile_size, .h = tm.tile_size}, src, false);
     }
 }
@@ -74,12 +81,12 @@ static void update_tilemap(const f32 mx, const f32 my)
 static void render_tilemap(SDL_Renderer* renderer)
 {
     MouseSnapshot mouse_snapshot = input_get_mouse_snapshot();
-    u16 mx = (u16)floorf(mouse_snapshot.x / SCALE / MAP_COL_TILES);
-    u16 my = (u16)floorf(mouse_snapshot.y / SCALE / MAP_COL_TILES);
+    u16 mx = (u16)floorf(mouse_snapshot.x / tm.width);
+    u16 my = (u16)floorf(mouse_snapshot.y / tm.width);
 
     for (size_t i = 0; i < MAX_NUM_TILES; ++i) {
-        u16 x = i / MAP_COL_TILES;
-        u16 y = i % MAP_COL_TILES;
+        u16 x = i / tm.width;
+        u16 y = i % tm.width;
 
         if (x == mx && y == my) {
             SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);

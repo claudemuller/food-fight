@@ -36,10 +36,10 @@ typedef struct {
     u32 width;
     u32 height;
     u32 tile_size;
-    Tile tiles[MAX_NUM_TILES];
+    Tile* tiles;
 } Tilemap;
 
-bool tilemap_init(SDL_Texture* tex);
+bool tilemap_init(MemoryArena* mem, SDL_Texture* tex);
 void tilemap_update(GameState* state);
 void tilemap_render_tileset(void);
 

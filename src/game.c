@@ -40,7 +40,7 @@ bool game_init(MemoryArena* mem)
         return false;
     }
 
-    if (!tilemap_init(tilemap_tex)) {
+    if (!tilemap_init(mem, tilemap_tex)) {
         util_error("Failed to init tilemap");
         return false;
     }
