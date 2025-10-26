@@ -32,7 +32,7 @@ bool game_init(MemoryArena* mem)
         .target = {WINDOW_WIDTH * 0.5f, WINDOW_HEIGHT * 0.5f},
         .offset = {WINDOW_WIDTH * 0.5f, WINDOW_HEIGHT * 0.5f},
         .rotation = 0.0f,
-        .zoom = 1.0f,
+        .zoom = SCALE,
     };
     state.state = GAME_STATE_EDITING;
     state.is_running = true;
@@ -102,6 +102,10 @@ static void update(void)
         state.state = state.state == GAME_STATE_EDITING ? GAME_STATE_PLAYING : GAME_STATE_EDITING;
     }
 
+    if (state.input.mouse.wheel_delta != 0.0) {
+        state.camera.zoom += state.input.mouse.wheel_delta;
+    }
+
     level_update();
 }
 
@@ -124,4 +128,6 @@ static void render(void)
         EndMode2D();
     }
     EndDrawing();
+
+    level_render_edit_mode();
 }

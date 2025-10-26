@@ -8,7 +8,6 @@
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 1080
 
-#define SCALE 1.0f
 #define GRAVITY 600.0f
 #define DRAG_COEF 0.0015f
 #define TERMINAL_VELOCITY sqrtf(GRAVITY / DRAG_COEF)

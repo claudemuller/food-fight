@@ -7,9 +7,10 @@
 #include "utils.h"
 #include <stdbool.h>
 
+#define SCALE 2.0f
 #define MAP_TILE_SIZE 18
-#define MAP_ROW_TILES (int)(WINDOW_HEIGHT / MAP_TILE_SIZE)
-#define MAP_COL_TILES (int)(WINDOW_WIDTH / MAP_TILE_SIZE)
+#define MAP_COL_TILES 80
+#define MAP_ROW_TILES 50
 #define MAX_NUM_TILES (MAP_ROW_TILES * MAP_COL_TILES)
 
 #define UI_DEBUG_FONT_SIZE 16
@@ -71,5 +72,6 @@ typedef struct Level {
 bool level_init(MemoryArena* level_mem, GameState* state);
 void level_update(void);
 void level_render(void);
+void level_render_edit_mode(void);
 
 #endif // !LEVEL_H_

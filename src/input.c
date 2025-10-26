@@ -1,5 +1,6 @@
 #include "input.h"
 #include "raylib.h"
+#include "utils.h"
 
 static f32 btof(bool b);
 
@@ -46,7 +47,7 @@ void input_process(Input* input)
     input->mouse.down = new_mouse_down;
 
     input->mouse.pos_px = GetMousePosition();
-    input->mouse.wheel_delta = GetMouseWheelMove();
+    input->mouse.wheel_delta = GetMouseWheelMove() * 0.5f;
 
     // Store this state for next frame's prev state
     prev_mouse_down = new_mouse_down;

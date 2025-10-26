@@ -21,7 +21,8 @@ static void render_map(void);
 static void update_player(const f32 dt);
 static void render_player(void);
 static void update_edit_mode(void);
-static void render_edit_mode(void);
+static void render_edit_mode_grid(void);
+static void render_edit_mode_ui(void);
 static bool update_edit_mode_tileset(void);
 static void render_edit_mode_tileset(void);
 static void render_edit_mode_brush(void);
@@ -112,19 +113,31 @@ void level_update(void)
 
 void level_render(void)
 {
-    // Render positioning grid
-    if (state->state == GAME_STATE_EDITING) {
-        render_edit_mode();
-    }
-
     render_bg();
     render_map();
+
+    // Render positioning grid
+    if (state->state == GAME_STATE_EDITING) {
+        render_edit_mode_grid();
+    }
 
     render_player();
 
     // Render editing mode UI
+    // if (state->state == GAME_STATE_EDITING) {
+    //     render_edit_mode_tileset();
+    //     if (!state->active_level->tilemap.tileset.active) {
+    //         render_edit_mode_brush();
+    //     }
+    // }
+}
+
+void level_render_edit_mode(void)
+{
+    // Render positioning grid
     if (state->state == GAME_STATE_EDITING) {
-        render_edit_mode_tileset();
+        render_edit_mode_ui();
+
         if (!state->active_level->tilemap.tileset.active) {
             render_edit_mode_brush();
         }
@@ -240,6 +253,7 @@ static void update_player(float dt)
 
     player->pos.x = new_x;
     player->pos.y = new_y;
+    state->camera.target = player->pos;
 }
 
 static void render_player(void)
@@ -334,28 +348,39 @@ static void update_edit_mode(void)
             }
         }
     }
+
+    if (input_is_key_down(&state->input.kb, KB_A)) {
+        state->camera.target.x -= 5.0f;
+    }
 }
 
-static void render_edit_mode(void)
+static void render_edit_mode_grid(void)
 {
+    Tilemap* tm = &state->active_level->tilemap;
+
     for (size_t i = 0; i < MAX_NUM_TILES; ++i) {
         u32 x = i % MAP_COL_TILES;
         u32 y = i / MAP_COL_TILES;
 
         DrawRectangleLinesEx(
             (Rectangle){
-                .x = x * MAP_TILE_SIZE,
-                .y = y * MAP_TILE_SIZE,
-                .width = MAP_TILE_SIZE,
-                .height = MAP_TILE_SIZE,
+                .x = x * tm->tile_size,
+                .y = y * tm->tile_size,
+                .width = tm->tile_size,
+                .height = tm->tile_size,
             },
             1.0f,
             paleblue_des);
     }
+}
+
+static void render_edit_mode_ui(void)
+{
+    render_edit_mode_tileset();
+
+    Tilemap* tm = &state->active_level->tilemap;
 
     // Render brush selection UI element
-    Tilemap* tm = &active_level->tilemap;
-
     Rectangle dst = {
         .x = tm->tileset.pos.x + tm->tileset.size.x - tm->tileset.tile_size,
         .y = tm->tileset.pos.y - tm->tileset.tile_size - 10,
@@ -407,14 +432,26 @@ static void render_edit_mode_tileset(void)
 {
     Tileset* ts = &active_level->tilemap.tileset;
 
-    DrawTexture(*ts->texture, ts->pos.x, ts->pos.y, WHITE);
+    Rectangle src = {
+        .x = 0,
+        .y = 0,
+        .width = ts->size.x,
+        .height = ts->size.y,
+    };
+    Rectangle dst = {
+        .x = ts->pos.x * SCALE,
+        .y = ts->pos.y * SCALE,
+        .width = ts->size.x * SCALE,
+        .height = ts->size.y * SCALE,
+    };
+    DrawTexturePro(*ts->texture, src, dst, (Vector2){0}, 0.0f, WHITE);
 
     DrawRectangleLinesEx(
         (Rectangle){
-            .x = ts->hovered_tile.x * ts->tile_size + ts->pos.x,
-            .y = ts->hovered_tile.y * ts->tile_size + ts->pos.y,
-            .width = ts->tile_size,
-            .height = ts->tile_size,
+            .x = (ts->hovered_tile.x * ts->tile_size + ts->pos.x),
+            .y = (ts->hovered_tile.y * ts->tile_size + ts->pos.y),
+            .width = ts->tile_size * SCALE,
+            .height = ts->tile_size * SCALE,
         },
         1.0f,
         RED);
