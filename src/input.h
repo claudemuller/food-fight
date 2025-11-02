@@ -37,6 +37,7 @@ typedef struct {
     u8 pressed;
     u8 released;
     f32 wheel_delta;
+    Vector2 down_pos_px;
     Vector2 pos_px;
 } Mouse;
 

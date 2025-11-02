@@ -40,7 +40,7 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
     state->active_level = active_level;
 
     Tilemap* tm = &active_level->tilemap;
-    tm->tile_size = MAP_TILE_SIZE;
+    tm->tile_size = MAP_TILE_SIZE * SCALE;
     tm->tiles_wide = MAP_COL_TILES;
     tm->tiles_high = MAP_ROW_TILES;
 
@@ -67,7 +67,11 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
                 .x = WINDOW_WIDTH * 0.5f,
                 .y = WINDOW_HEIGHT * 0.5f,
             },
-        .size = {18, 18},
+        .size =
+            {
+                .x = 18 * SCALE,
+                .y = 18 * SCALE,
+            },
     };
 
     // for (size_t i = 0; i < MAX_NUM_TILES; ++i) {
@@ -173,7 +177,7 @@ static void update_player(float dt)
     }
 
     player->vel.y += GRAVITY * dt;
-    player->vel.y = clamp_f(player->vel.y, -TERMINAL_VELOCITY, TERMINAL_VELOCITY);
+    player->vel.y = clampf(player->vel.y, -TERMINAL_VELOCITY, TERMINAL_VELOCITY);
 
     f32 new_x = player->pos.x + player->vel.x * dt;
     f32 new_y = player->pos.y + player->vel.y * dt;
@@ -260,6 +264,7 @@ static void render_player(void)
 {
     Player player = state->active_level->player;
 
+    // Scale added for size in player creation and in update for pos
     DrawRectangleRec(
         (Rectangle){
             .x = player.pos.x,
@@ -372,8 +377,18 @@ static void render_edit_mode_grid(void)
             1.0f,
             paleblue_des);
     }
+    DrawRectangleLinesEx(
+        (Rectangle){
+            .x = 0,
+            .y = 0,
+            .width = tm->tile_size * tm->tiles_wide,
+            .height = tm->tile_size * tm->tiles_high,
+        },
+        5.0f,
+        GREEN);
 }
 
+// NOTE: fixed
 static void render_edit_mode_ui(void)
 {
     render_edit_mode_tileset();
@@ -382,8 +397,8 @@ static void render_edit_mode_ui(void)
 
     // Render brush selection UI element
     Rectangle dst = {
-        .x = tm->tileset.pos.x + tm->tileset.size.x - tm->tileset.tile_size,
-        .y = tm->tileset.pos.y - tm->tileset.tile_size - 10,
+        .x = (tm->tileset.pos.x + tm->tileset.size.x - tm->tileset.tile_size) * SCALE,
+        .y = (tm->tileset.pos.y - tm->tileset.tile_size - 10) * SCALE,
         .width = tm->tile_size,
         .height = tm->tile_size,
     };
@@ -396,22 +411,32 @@ static bool update_edit_mode_tileset(void)
     Tileset* ts = &tm->tileset;
     ts->active = false;
 
+    // TODD: test
+    // if (CheckCollisionPointRec(state->input.mouse.pos_px,
+    //                            (Rectangle){
+    //                                .x = ts->pos.x * SCALE,
+    //                                .y = ts->pos.y * SCALE,
+    //                                .width = ts->size.x * SCALE,
+    //                                .height = ts->size.y * SCALE,
+    //                            })) {
+    //     util_info("collide");
+    // }
     if (!CheckCollisionPointRec(state->input.mouse.pos_px,
                                 (Rectangle){
-                                    .x = ts->pos.x,
-                                    .y = ts->pos.y,
-                                    .width = ts->size.x,
-                                    .height = ts->size.y,
+                                    .x = ts->pos.x * SCALE,
+                                    .y = ts->pos.y * SCALE,
+                                    .width = ts->size.x * SCALE,
+                                    .height = ts->size.y * SCALE,
                                 })) {
         return false;
     }
 
     ts->active = true;
 
-    f32 mouse_relx = state->input.mouse.pos_px.x - ts->pos.x;
-    f32 mouse_rely = state->input.mouse.pos_px.y - ts->pos.y;
-    ts->hovered_tile.x = (u32)floorf(mouse_relx / ts->tile_size);
-    ts->hovered_tile.y = (u32)floorf(mouse_rely / ts->tile_size);
+    f32 mouse_relx = state->input.mouse.pos_px.x - ts->pos.x * SCALE;
+    f32 mouse_rely = state->input.mouse.pos_px.y - ts->pos.y * SCALE;
+    ts->hovered_tile.x = (u32)floorf(mouse_relx / ts->tile_size / SCALE);
+    ts->hovered_tile.y = (u32)floorf(mouse_rely / ts->tile_size / SCALE);
 
     if (input_is_mouse_pressed(&state->input.mouse, MB_LEFT)) {
         if (!tm->brush.is_set) {
@@ -421,13 +446,15 @@ static bool update_edit_mode_tileset(void)
         tm->brush.src.y = tm->tileset.hovered_tile.y * tm->tileset.tile_size;
         tm->brush.src.width = tm->tileset.tile_size;
         tm->brush.src.height = tm->tileset.tile_size;
-        tm->brush.size.x = tm->tile_size;
-        tm->brush.size.y = tm->tile_size;
+        // TODO: right?
+        tm->brush.size.x = tm->tile_size * SCALE;
+        tm->brush.size.y = tm->tile_size * SCALE;
     }
 
     return true;
 }
 
+// NOTE: fixed
 static void render_edit_mode_tileset(void)
 {
     Tileset* ts = &active_level->tilemap.tileset;
@@ -444,12 +471,15 @@ static void render_edit_mode_tileset(void)
         .width = ts->size.x * SCALE,
         .height = ts->size.y * SCALE,
     };
+
+    // Render tilset
     DrawTexturePro(*ts->texture, src, dst, (Vector2){0}, 0.0f, WHITE);
 
+    // Render hovered tilset tile indicator
     DrawRectangleLinesEx(
         (Rectangle){
-            .x = (ts->hovered_tile.x * ts->tile_size + ts->pos.x),
-            .y = (ts->hovered_tile.y * ts->tile_size + ts->pos.y),
+            .x = (ts->hovered_tile.x * ts->tile_size * SCALE) + (ts->pos.x * SCALE),
+            .y = (ts->hovered_tile.y * ts->tile_size * SCALE) + (ts->pos.y * SCALE),
             .width = ts->tile_size * SCALE,
             .height = ts->tile_size * SCALE,
         },
@@ -457,6 +487,7 @@ static void render_edit_mode_tileset(void)
         RED);
 }
 
+// Renders the brush at the mouse pointer.
 static void render_edit_mode_brush(void)
 {
     Tilemap* tm = &active_level->tilemap;
@@ -465,11 +496,13 @@ static void render_edit_mode_brush(void)
     u32 gridy = (u16)floorf(state->input.mouse.pos_px.y / tm->tile_size);
 
     Rectangle dst = (Rectangle){
-        .width = tm->tile_size,
-        .height = tm->tile_size,
+        .width = tm->tile_size * SCALE,
+        .height = tm->tile_size * SCALE,
     };
     u32 x = gridx * tm->tile_size;
     u32 y = gridy * tm->tile_size;
+
+    // util_info("%d %d", x, y);
 
     u8 brush_row_tiles = tm->brush.size.y / tm->tile_size;
     u8 brush_col_tiles = tm->brush.size.x / tm->tile_size;

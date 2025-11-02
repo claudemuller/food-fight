@@ -5,7 +5,7 @@
 #include "raylib.h"
 #include <stdbool.h>
 
-#define WINDOW_WIDTH 1280
+#define WINDOW_WIDTH 1980
 #define WINDOW_HEIGHT 1080
 
 #define GRAVITY 600.0f

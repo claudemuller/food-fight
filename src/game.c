@@ -102,9 +102,62 @@ static void update(void)
         state.state = state.state == GAME_STATE_EDITING ? GAME_STATE_PLAYING : GAME_STATE_EDITING;
     }
 
-    if (state.input.mouse.wheel_delta != 0.0) {
-        state.camera.zoom += state.input.mouse.wheel_delta;
+    if (input_is_mouse_down(&state.input.mouse, MB_LEFT)) {
+        util_info("%f %f - %f %f", state.input.mouse.down_pos_px.x, state.input.mouse.down_pos_px.y);
     }
+    Tilemap* tm = &state.active_level->tilemap;
+    u32 map_w = tm->tiles_wide * tm->tile_size;
+    u32 map_h = tm->tiles_high * tm->tile_size;
+
+    if (state.input.mouse.wheel_delta != 0.0) {
+        // Clamp zoom
+        f32 min_zoom_x = (f32)WINDOW_WIDTH / (f32)map_w;
+        f32 min_zoom_y = (f32)WINDOW_HEIGHT / (f32)map_h;
+        f32 min_zoom = fmaxf(min_zoom_x, min_zoom_y);
+        f32 max_zoom = MAX_ZOOM;
+
+        state.camera.zoom += state.input.mouse.wheel_delta;
+
+        if (state.camera.zoom < min_zoom) {
+            state.camera.zoom = min_zoom;
+        }
+        if (state.camera.zoom > max_zoom) {
+            state.camera.zoom = max_zoom;
+        }
+    }
+
+    if (input_is_mouse_down(&state.input.mouse, MB_LEFT)) {
+        f32 m_delta_x = state.input.mouse.pos_px.x - state.input.mouse.down_pos_px.x;
+        f32 m_delta_y = state.input.mouse.pos_px.y - state.input.mouse.down_pos_px.y;
+        state.camera.target.x += m_delta_x * 0.05f;
+        state.camera.target.y += m_delta_y * 0.05f;
+    }
+
+    // Keep map in window
+    f32 half_view_w = (WINDOW_WIDTH * 0.5f) / state.camera.zoom;
+    f32 half_view_h = (WINDOW_HEIGHT * 0.5f) / state.camera.zoom;
+
+    f32 min_target_x = half_view_w;
+    f32 max_target_x = map_w - half_view_w;
+    f32 min_target_y = half_view_h;
+    f32 max_target_y = map_h - half_view_h;
+
+    // If the map is smaller than the view on a given axis, just centre it
+    if (map_w <= WINDOW_WIDTH) {
+        min_target_x = max_target_x = map_w * 0.5f;
+    }
+    if (map_h <= WINDOW_HEIGHT) {
+        min_target_y = max_target_y = map_h * 0.5f;
+    }
+
+    // Clamp the target (you may already have panning logic – just apply the clamp afterwards)
+    state.camera.target.x = clampf(state.camera.target.x, min_target_x, max_target_x);
+    state.camera.target.y = clampf(state.camera.target.y, min_target_y, max_target_y);
+
+    state.camera.offset = (Vector2){
+        WINDOW_WIDTH * 0.5f,
+        WINDOW_HEIGHT * 0.5f,
+    };
 
     level_update();
 }
@@ -119,6 +172,9 @@ static void render(void)
         {
             level_render();
 
+            Tilemap* tm = &state.active_level->tilemap;
+            u32 map_w = tm->tiles_wide * tm->tile_size;
+            DrawText("X", map_w - 15, 10, 16, paleblue_d);
             DrawText(TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"),
                      10,
                      10,
@@ -126,8 +182,8 @@ static void render(void)
                      paleblue_d);
         }
         EndMode2D();
+
+        level_render_edit_mode();
     }
     EndDrawing();
-
-    level_render_edit_mode();
 }

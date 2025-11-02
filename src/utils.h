@@ -78,7 +78,7 @@ static inline u32 clamp(u32 v, u32 lo, u32 hi)
     return min(max(v, lo), hi);
 }
 
-static inline f32 clamp_f(f32 v, f32 lo, f32 hi)
+static inline f32 clampf(f32 v, f32 lo, f32 hi)
 {
     return fminf(fmaxf(v, lo), hi);
 }

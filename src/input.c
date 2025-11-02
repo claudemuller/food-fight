@@ -34,6 +34,9 @@ void input_process(Input* input)
 
     // Mouse --------------------------------------------------------------------------------------
 
+    input->mouse.pos_px = GetMousePosition();
+    input->mouse.wheel_delta = GetMouseWheelMove() * 0.5f;
+
     static u32 prev_mouse_down = 0;
     u32 new_mouse_down = 0;
 
@@ -43,11 +46,11 @@ void input_process(Input* input)
 
     // Derive pressed/released from mouse btn transition
     input->mouse.pressed = (new_mouse_down & ~prev_mouse_down);
+    if (input->mouse.pressed) {
+        input->mouse.down_pos_px = input->mouse.pos_px;
+    }
     input->mouse.released = (~new_mouse_down & prev_mouse_down);
     input->mouse.down = new_mouse_down;
-
-    input->mouse.pos_px = GetMousePosition();
-    input->mouse.wheel_delta = GetMouseWheelMove() * 0.5f;
 
     // Store this state for next frame's prev state
     prev_mouse_down = new_mouse_down;

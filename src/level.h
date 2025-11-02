@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #define SCALE 2.0f
+#define MAX_ZOOM 5.0f
 #define MAP_TILE_SIZE 18
 #define MAP_COL_TILES 80
 #define MAP_ROW_TILES 50
