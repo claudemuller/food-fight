@@ -6,7 +6,9 @@
 #include "state.h"
 #include "utils.h"
 #include <SDL3/SDL_render.h>
+#include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 static Level* active_level;
 static GameState* state;
@@ -27,6 +29,7 @@ static bool update_edit_mode_tileset(void);
 static void render_edit_mode_tileset(void);
 static void render_edit_mode_brush(void);
 static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last);
+static u32 mouse_to_grid_x(float mouse_x, float mouse_y, u8 tile_size);
 
 bool level_init(MemoryArena* level_mem, GameState* game_state)
 {
@@ -40,7 +43,7 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
     state->active_level = active_level;
 
     Tilemap* tm = &active_level->tilemap;
-    tm->tile_size = MAP_TILE_SIZE * SCALE;
+    tm->tile_size = MAP_TILE_SIZE;
     tm->tiles_wide = MAP_COL_TILES;
     tm->tiles_high = MAP_ROW_TILES;
 
@@ -312,8 +315,10 @@ static void update_edit_mode(void)
 
     Tilemap* tm = &active_level->tilemap;
 
-    i32 gridx = (u16)floorf(state->input.mouse.pos_px.x / tm->tile_size);
-    i32 gridy = (u16)floorf(state->input.mouse.pos_px.y / tm->tile_size);
+    u32 packed_coords = mouse_to_grid_x(
+        state->input.mouse.pos_px.x, state->input.mouse.pos_px.y, state->active_level->tilemap.tile_size);
+    u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
+    u16 gridy = packed_coords & 0xFFFF;
 
     if (input_is_key_pressed(&state->input.kb, KB_LSHFT)) {
         mouse_down_grid_x = gridx;
@@ -330,6 +335,8 @@ static void update_edit_mode(void)
     if (input_is_mouse_down(&state->input.mouse, MB_LEFT)) {
         u32 start_gridx = gridx;
         u32 start_gridy = gridy;
+
+        util_info("x: %d x: %d", start_gridx, start_gridy);
 
         u8 brush_row_tiles = tm->brush.size.y / tm->tile_size;
         u8 brush_col_tiles = tm->brush.size.x / tm->tile_size;
@@ -353,10 +360,6 @@ static void update_edit_mode(void)
             }
         }
     }
-
-    if (input_is_key_down(&state->input.kb, KB_A)) {
-        state->camera.target.x -= 5.0f;
-    }
 }
 
 static void render_edit_mode_grid(void)
@@ -377,15 +380,6 @@ static void render_edit_mode_grid(void)
             1.0f,
             paleblue_des);
     }
-    DrawRectangleLinesEx(
-        (Rectangle){
-            .x = 0,
-            .y = 0,
-            .width = tm->tile_size * tm->tiles_wide,
-            .height = tm->tile_size * tm->tiles_high,
-        },
-        5.0f,
-        GREEN);
 }
 
 // NOTE: fixed
@@ -399,28 +393,19 @@ static void render_edit_mode_ui(void)
     Rectangle dst = {
         .x = (tm->tileset.pos.x + tm->tileset.size.x - tm->tileset.tile_size) * SCALE,
         .y = (tm->tileset.pos.y - tm->tileset.tile_size - 10) * SCALE,
-        .width = tm->tile_size,
-        .height = tm->tile_size,
+        .width = tm->tile_size * SCALE,
+        .height = tm->tile_size * SCALE,
     };
     DrawTexturePro(*tm->tileset.texture, tm->brush.src, dst, (Vector2){0, 0}, 0.0f, WHITE);
 }
 
+// NOTE: fixed ?
 static bool update_edit_mode_tileset(void)
 {
     Tilemap* tm = &active_level->tilemap;
     Tileset* ts = &tm->tileset;
     ts->active = false;
 
-    // TODD: test
-    // if (CheckCollisionPointRec(state->input.mouse.pos_px,
-    //                            (Rectangle){
-    //                                .x = ts->pos.x * SCALE,
-    //                                .y = ts->pos.y * SCALE,
-    //                                .width = ts->size.x * SCALE,
-    //                                .height = ts->size.y * SCALE,
-    //                            })) {
-    //     util_info("collide");
-    // }
     if (!CheckCollisionPointRec(state->input.mouse.pos_px,
                                 (Rectangle){
                                     .x = ts->pos.x * SCALE,
@@ -447,8 +432,8 @@ static bool update_edit_mode_tileset(void)
         tm->brush.src.width = tm->tileset.tile_size;
         tm->brush.src.height = tm->tileset.tile_size;
         // TODO: right?
-        tm->brush.size.x = tm->tile_size * SCALE;
-        tm->brush.size.y = tm->tile_size * SCALE;
+        tm->brush.size.x = tm->tile_size;
+        tm->brush.size.y = tm->tile_size;
     }
 
     return true;
@@ -492,20 +477,20 @@ static void render_edit_mode_brush(void)
 {
     Tilemap* tm = &active_level->tilemap;
 
-    u32 gridx = (u16)floorf(state->input.mouse.pos_px.x / tm->tile_size);
-    u32 gridy = (u16)floorf(state->input.mouse.pos_px.y / tm->tile_size);
+    u32 packed_coords = mouse_to_grid_x(
+        state->input.mouse.pos_px.x, state->input.mouse.pos_px.y, state->active_level->tilemap.tile_size);
+    u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
+    u16 gridy = packed_coords & 0xFFFF;
 
     Rectangle dst = (Rectangle){
-        .width = tm->tile_size * SCALE,
-        .height = tm->tile_size * SCALE,
+        .width = tm->tile_size * state->camera.zoom,
+        .height = tm->tile_size * state->camera.zoom,
     };
     u32 x = gridx * tm->tile_size;
     u32 y = gridy * tm->tile_size;
 
-    // util_info("%d %d", x, y);
-
-    u8 brush_row_tiles = tm->brush.size.y / tm->tile_size;
-    u8 brush_col_tiles = tm->brush.size.x / tm->tile_size;
+    u8 brush_row_tiles = tm->brush.size.y / tm->tile_size * state->camera.zoom;
+    u8 brush_col_tiles = tm->brush.size.x / tm->tile_size * state->camera.zoom;
 
     for (size_t i = 0; i < brush_row_tiles; ++i) {
         for (size_t j = 0; j < brush_col_tiles; ++j) {
@@ -515,6 +500,19 @@ static void render_edit_mode_brush(void)
             DrawTexturePro(*tm->tileset.texture, tm->brush.src, dst, (Vector2){0, 0}, 0.0f, WHITE);
         }
     }
+
+    // util_info("gridx: %d gridy: %d", gridx, gridy);
+    // util_info("x: %d y: %d", x, y);
+
+    DrawRectangleLinesEx(
+        (Rectangle){
+            .x = x,
+            .y = y,
+            .width = tm->tile_size * state->camera.zoom,
+            .height = tm->tile_size * state->camera.zoom,
+        },
+        1.0f,
+        RED);
 }
 
 static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last)
@@ -534,4 +532,25 @@ static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t*
     // Convert the 2‑D region to a 1‑D range (row‑major)
     *out_first = (size_t)(row_start * MAP_COL_TILES + col_start);
     *out_last = (size_t)((row_end * MAP_COL_TILES + col_end) - 1);
+}
+
+static u32 mouse_to_grid_x(float mouse_x, float mouse_y, u8 tile_size)
+{
+    // Undo zoom
+    f32 worldx = mouse_x / state->camera.zoom;
+    f32 worldy = mouse_y / state->camera.zoom;
+
+    // Translate from screen origin to world origin - subtract half‑view because the camera draws
+    // 'target' at the centre
+    f32 half_view_w = (WINDOW_WIDTH * 0.5f) / state->camera.zoom;
+    f32 half_view_h = (WINDOW_HEIGHT * 0.5f) / state->camera.zoom;
+
+    worldx += state->camera.target.x - half_view_w;
+    worldy += state->camera.target.y - half_view_h;
+
+    // 3️⃣ Snap to the grid
+    int gridx = (int)floorf(worldx / (float)tile_size);
+    int gridy = (int)floorf(worldy / (float)tile_size);
+
+    return (gridx << 16) | (gridy & 0xFFFF);
 }
