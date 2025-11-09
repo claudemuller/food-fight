@@ -74,5 +74,6 @@ bool level_init(MemoryArena* level_mem, GameState* state);
 void level_update(void);
 void level_render(void);
 void level_render_edit_mode(void);
+void level_render_edit_mode_ui(void);
 
 #endif // !LEVEL_H_

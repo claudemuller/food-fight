@@ -121,34 +121,26 @@ void level_update(void)
 void level_render(void)
 {
     render_bg();
-    render_map();
 
     // Render positioning grid
     if (state->state == GAME_STATE_EDITING) {
         render_edit_mode_grid();
     }
 
+    render_map();
     render_player();
-
-    // Render editing mode UI
-    // if (state->state == GAME_STATE_EDITING) {
-    //     render_edit_mode_tileset();
-    //     if (!state->active_level->tilemap.tileset.active) {
-    //         render_edit_mode_brush();
-    //     }
-    // }
 }
 
 void level_render_edit_mode(void)
 {
-    // Render positioning grid
-    if (state->state == GAME_STATE_EDITING) {
-        render_edit_mode_ui();
-
-        if (!state->active_level->tilemap.tileset.active) {
-            render_edit_mode_brush();
-        }
+    if (!state->active_level->tilemap.tileset.active) {
+        render_edit_mode_brush();
     }
+}
+
+void level_render_edit_mode_ui(void)
+{
+    render_edit_mode_ui();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -482,37 +474,31 @@ static void render_edit_mode_brush(void)
     u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
     u16 gridy = packed_coords & 0xFFFF;
 
-    Rectangle dst = (Rectangle){
-        .width = tm->tile_size * state->camera.zoom,
-        .height = tm->tile_size * state->camera.zoom,
-    };
-    u32 x = gridx * tm->tile_size;
-    u32 y = gridy * tm->tile_size;
+    Rectangle dst = {0};
 
-    u8 brush_row_tiles = tm->brush.size.y / tm->tile_size * state->camera.zoom;
-    u8 brush_col_tiles = tm->brush.size.x / tm->tile_size * state->camera.zoom;
+    u32 start_gridx = gridx;
+    u32 start_gridy = gridy;
+
+    u8 brush_col_tiles = tm->brush.size.x / tm->tile_size;
+    u8 brush_row_tiles = tm->brush.size.y / tm->tile_size;
 
     for (size_t i = 0; i < brush_row_tiles; ++i) {
         for (size_t j = 0; j < brush_col_tiles; ++j) {
-            dst.x = x + (j * tm->tile_size);
-            dst.y = y + (i * tm->tile_size);
+            u32 curx = (start_gridx + j) * tm->tile_size;
+            u32 cury = (start_gridy + i) * tm->tile_size;
+
+            util_info("gridx: %d gridy: %d - curx: %d cury: %d", gridx, gridy, curx, cury);
+
+            dst.x = curx;
+            dst.y = cury;
+            dst.width = tm->tile_size;
+            dst.height = tm->tile_size;
 
             DrawTexturePro(*tm->tileset.texture, tm->brush.src, dst, (Vector2){0, 0}, 0.0f, WHITE);
         }
     }
 
-    // util_info("gridx: %d gridy: %d", gridx, gridy);
-    // util_info("x: %d y: %d", x, y);
-
-    DrawRectangleLinesEx(
-        (Rectangle){
-            .x = x,
-            .y = y,
-            .width = tm->tile_size * state->camera.zoom,
-            .height = tm->tile_size * state->camera.zoom,
-        },
-        1.0f,
-        RED);
+    DrawRectangleLinesEx(dst, 1.0f, GREEN);
 }
 
 static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last)

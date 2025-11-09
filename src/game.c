@@ -15,6 +15,7 @@ static f32 zoom;
 static bool start_new(MemoryArena* level_mem);
 static void update(void);
 static void render(void);
+static void render_debug_ui(void);
 
 bool game_init(MemoryArena* mem)
 {
@@ -181,17 +182,29 @@ static void render(void)
         BeginMode2D(state.camera);
         {
             level_render();
+
+            if (state.state == GAME_STATE_EDITING) {
+                level_render_edit_mode();
+            }
+            // brush
         }
         EndMode2D();
 
-        Tilemap* tm = &state.active_level->tilemap;
-        u32 map_w = tm->tiles_wide * tm->tile_size;
-        DrawText(TextFormat("Zoom: x%.2f", zoom), 10, 10, 16, paleblue_d);
-        DrawText(
-            TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"), 10, 25, 16, paleblue_d);
-        DrawText("X", map_w - 15, 10, 16, paleblue_d);
-
-        level_render_edit_mode();
+        // Not affected by camera
+        {
+            level_render_edit_mode_ui();
+            render_debug_ui();
+        }
     }
     EndDrawing();
+}
+
+static void render_debug_ui(void)
+{
+    Tilemap* tm = &state.active_level->tilemap;
+    u32 map_w = tm->tiles_wide * tm->tile_size;
+    DrawText(TextFormat("Zoom: x%.2f", zoom), 10, 10, 16, paleblue_d);
+    DrawText(
+        TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"), 10, 25, 16, paleblue_d);
+    DrawText("X", map_w - 15, 10, 16, paleblue_d);
 }
