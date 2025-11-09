@@ -1,6 +1,7 @@
 #include "game.h"
 #include "arena.h"
 #include "asset_manager.h"
+#include "gfx.h"
 #include "input.h"
 #include "level.h"
 #include "state.h"
@@ -177,7 +178,7 @@ static void render(void)
 {
     BeginDrawing();
     {
-        ClearBackground(paleblue);
+        ClearBackground(PALEBLUE);
 
         BeginMode2D(state.camera);
         {
@@ -203,8 +204,8 @@ static void render_debug_ui(void)
 {
     Tilemap* tm = &state.active_level->tilemap;
     u32 map_w = tm->tiles_wide * tm->tile_size;
-    DrawText(TextFormat("Zoom: x%.2f", zoom), 10, 10, 16, paleblue_d);
+    DrawText(TextFormat("Zoom: x%.2f", zoom), 10, 10, 16, PALEBLUE_D);
     DrawText(
-        TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"), 10, 25, 16, paleblue_d);
-    DrawText("X", map_w - 15, 10, 16, paleblue_d);
+        TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"), 10, 25, 16, PALEBLUE_D);
+    DrawText("X", map_w - 15, 10, 16, PALEBLUE_D);
 }

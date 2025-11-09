@@ -1,6 +1,7 @@
 #include "level.h"
 #include "arena.h"
 #include "asset_manager.h"
+#include "gfx.h"
 #include "input.h"
 #include "raylib.h"
 #include "state.h"
@@ -13,11 +14,6 @@
 static Level* active_level;
 static GameState* state;
 
-const Color red = {0xff, 0x00, 0x00, 0xff};
-const Color paleblue = {0xd0, 0xdf, 0xff, 0xff};
-const Color paleblue_d = {0x63, 0x75, 0x9e, 0xff};
-const Color paleblue_des = {0xb7, 0xc2, 0xd7, 0xff};
-
 static void render_bg(void);
 static void render_map(void);
 static void update_player(const f32 dt);
@@ -29,7 +25,7 @@ static bool update_edit_mode_tileset(void);
 static void render_edit_mode_tileset(void);
 static void render_edit_mode_brush(void);
 static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last);
-static u32 mouse_to_grid_x(float mouse_x, float mouse_y, u8 tile_size);
+static u32 worldp_to_gridp(float mouse_x, float mouse_y, u8 tile_size);
 
 bool level_init(MemoryArena* level_mem, GameState* game_state)
 {
@@ -65,37 +61,13 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
     }
 
     state->active_level->player = (Player){
-        .pos =
-            {
-                .x = WINDOW_WIDTH * 0.5f,
-                .y = WINDOW_HEIGHT * 0.5f,
-            },
+        .pos = screenp_to_worldp(state->camera.target, &state->camera, GetScreenWidth(), GetScreenHeight()),
         .size =
             {
                 .x = 18 * SCALE,
                 .y = 18 * SCALE,
             },
     };
-
-    // for (size_t i = 0; i < MAX_NUM_TILES; ++i) {
-    //     Tile* tile = &tm->tiles[i];
-    //
-    //     u32 x = i % MAP_COL_TILES;
-    //     u32 y = i / MAP_COL_TILES;
-    //
-    //     tile->dst = (Rectangle){
-    //         .x = x * MAP_TILE_SIZE,
-    //         .y = y * MAP_TILE_SIZE,
-    //         .width = MAP_TILE_SIZE,
-    //         .height = MAP_TILE_SIZE,
-    //     };
-    //     tile->src = (Rectangle){
-    //         .x = 0,
-    //         .y = 0,
-    //         .width = MAP_TILE_SIZE,
-    //         .height = MAP_TILE_SIZE,
-    //     };
-    // }
 
     active_level->is_loaded = true;
 
@@ -143,7 +115,41 @@ void level_render_edit_mode_ui(void)
     render_edit_mode_ui();
 }
 
+// Converts a 2D screen position (spos) to a 2D world position.
+Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w, const f32 screen_h)
+{
+    // Divide by zoom to get number of world units that fits on screen
+    f32 view_w = screen_w / cam->zoom;
+    f32 view_h = screen_h / cam->zoom;
+
+    // Get camera bounds
+    f32 camera_left = cam->target.x - view_w * 0.5f;
+    f32 camera_top = cam->target.y - view_h * 0.5f;
+
+    // Convert screen space point to world space point
+    f32 world_x = camera_left + (spos.x / screen_w) * view_w;
+    f32 world_y = camera_top + (spos.y / screen_h) * view_h;
+
+    return (Vector2){
+        .x = world_x,
+        .y = world_y,
+    };
+}
+
 // ------------------------------------------------------------------------------------------------
+
+// World point to grid point.
+static u32 worldp_to_gridp(float mouse_x, float mouse_y, u8 tile_size)
+{
+    Vector2 world_space =
+        screenp_to_worldp((Vector2){mouse_x, mouse_y}, &state->camera, GetScreenWidth(), GetScreenHeight());
+
+    // 3️⃣ Snap to the grid
+    int gridx = (int)floorf(world_space.x / (float)tile_size);
+    int gridy = (int)floorf(world_space.y / (float)tile_size);
+
+    return (gridx << 16) | (gridy & 0xFFFF);
+}
 
 static void render_bg(void)
 {
@@ -307,7 +313,7 @@ static void update_edit_mode(void)
 
     Tilemap* tm = &active_level->tilemap;
 
-    u32 packed_coords = mouse_to_grid_x(
+    u32 packed_coords = worldp_to_gridp(
         state->input.mouse.pos_px.x, state->input.mouse.pos_px.y, state->active_level->tilemap.tile_size);
     u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
     u16 gridy = packed_coords & 0xFFFF;
@@ -370,11 +376,10 @@ static void render_edit_mode_grid(void)
                 .height = tm->tile_size,
             },
             1.0f / state->camera.zoom,
-            paleblue_des);
+            PALEBLUE_DES);
     }
 }
 
-// NOTE: fixed
 static void render_edit_mode_ui(void)
 {
     render_edit_mode_tileset();
@@ -391,7 +396,6 @@ static void render_edit_mode_ui(void)
     DrawTexturePro(*tm->tileset.texture, tm->brush.src, dst, (Vector2){0, 0}, 0.0f, WHITE);
 }
 
-// NOTE: fixed ?
 static bool update_edit_mode_tileset(void)
 {
     Tilemap* tm = &active_level->tilemap;
@@ -431,7 +435,6 @@ static bool update_edit_mode_tileset(void)
     return true;
 }
 
-// NOTE: fixed
 static void render_edit_mode_tileset(void)
 {
     Tileset* ts = &active_level->tilemap.tileset;
@@ -471,7 +474,7 @@ static void render_edit_mode_brush(void)
 {
     Tilemap* tm = &active_level->tilemap;
 
-    u32 packed_coords = mouse_to_grid_x(
+    u32 packed_coords = worldp_to_gridp(
         state->input.mouse.pos_px.x, state->input.mouse.pos_px.y, state->active_level->tilemap.tile_size);
     u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
     u16 gridy = packed_coords & 0xFFFF;
@@ -520,25 +523,4 @@ static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t*
     // Convert the 2‑D region to a 1‑D range (row‑major)
     *out_first = (size_t)(row_start * MAP_COL_TILES + col_start);
     *out_last = (size_t)((row_end * MAP_COL_TILES + col_end) - 1);
-}
-
-static u32 mouse_to_grid_x(float mouse_x, float mouse_y, u8 tile_size)
-{
-    // Undo zoom
-    f32 worldx = mouse_x / state->camera.zoom;
-    f32 worldy = mouse_y / state->camera.zoom;
-
-    // Translate from screen origin to world origin - subtract half‑view because the camera draws
-    // 'target' at the centre
-    f32 half_view_w = (WINDOW_WIDTH * 0.5f) / state->camera.zoom;
-    f32 half_view_h = (WINDOW_HEIGHT * 0.5f) / state->camera.zoom;
-
-    worldx += state->camera.target.x - half_view_w;
-    worldy += state->camera.target.y - half_view_h;
-
-    // 3️⃣ Snap to the grid
-    int gridx = (int)floorf(worldx / (float)tile_size);
-    int gridy = (int)floorf(worldy / (float)tile_size);
-
-    return (gridx << 16) | (gridy & 0xFFFF);
 }

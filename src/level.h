@@ -76,5 +76,6 @@ void level_update(void);
 void level_render(void);
 void level_render_edit_mode(void);
 void level_render_edit_mode_ui(void);
+Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w, const f32 screen_h);
 
 #endif // !LEVEL_H_
