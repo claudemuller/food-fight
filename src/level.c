@@ -369,7 +369,7 @@ static void render_edit_mode_grid(void)
                 .width = tm->tile_size,
                 .height = tm->tile_size,
             },
-            1.0f,
+            1.0f / state->camera.zoom,
             paleblue_des);
     }
 }
@@ -453,15 +453,17 @@ static void render_edit_mode_tileset(void)
     DrawTexturePro(*ts->texture, src, dst, (Vector2){0}, 0.0f, WHITE);
 
     // Render hovered tilset tile indicator
-    DrawRectangleLinesEx(
-        (Rectangle){
-            .x = (ts->hovered_tile.x * ts->tile_size * SCALE) + (ts->pos.x * SCALE),
-            .y = (ts->hovered_tile.y * ts->tile_size * SCALE) + (ts->pos.y * SCALE),
-            .width = ts->tile_size * SCALE,
-            .height = ts->tile_size * SCALE,
-        },
-        1.0f,
-        RED);
+    if (ts->active) {
+        DrawRectangleLinesEx(
+            (Rectangle){
+                .x = (ts->hovered_tile.x * ts->tile_size * SCALE) + (ts->pos.x * SCALE),
+                .y = (ts->hovered_tile.y * ts->tile_size * SCALE) + (ts->pos.y * SCALE),
+                .width = ts->tile_size * SCALE,
+                .height = ts->tile_size * SCALE,
+            },
+            DEBUG_UI_LINE_THICKNESS,
+            RED);
+    }
 }
 
 // Renders the brush at the mouse pointer.
@@ -498,7 +500,7 @@ static void render_edit_mode_brush(void)
         }
     }
 
-    DrawRectangleLinesEx(dst, 1.0f, GREEN);
+    DrawRectangleLinesEx(dst, DEBUG_UI_LINE_THICKNESS / state->camera.zoom, GREEN);
 }
 
 static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last)

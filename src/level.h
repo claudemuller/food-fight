@@ -15,6 +15,7 @@
 #define MAX_NUM_TILES (MAP_ROW_TILES * MAP_COL_TILES)
 
 #define UI_DEBUG_FONT_SIZE 16
+#define DEBUG_UI_LINE_THICKNESS 3.0f
 #define MAX_BRUSH_SIZE (MAP_TILE_SIZE * 20)
 
 extern const Color red;
