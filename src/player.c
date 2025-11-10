@@ -1,10 +1,10 @@
 #include "player.h"
-#include "arena.h"
 #include "level.h"
-#include "state.h"
 
 static GameState* state;
 static Player* player;
+
+static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last);
 
 bool player_new(MemoryArena* level_mem, GameState* game_state)
 {
@@ -12,7 +12,7 @@ bool player_new(MemoryArena* level_mem, GameState* game_state)
 
     player = (Player*)arena_alloc_aligned(level_mem, sizeof(Player), 16);
     if (!player) {
-        util_error("Failed to init level mem");
+        util_error("Failed to create player");
         return false;
     }
 
@@ -120,7 +120,7 @@ void player_update(float dt)
     state->camera.target = player->pos;
 }
 
-void reset_player(Player* player)
+void player_reset(Player* player)
 {
     Vector2 player_wpos = screenp_to_worldp(
         (Vector2){
@@ -146,8 +146,8 @@ void player_render(void)
     // Scale added for size in player creation and in update for pos
     DrawRectangleRec(
         (Rectangle){
-            .x = player.pos.x,
-            .y = player.pos.y,
+            .x = player->pos.x,
+            .y = player->pos.y,
             .width = player->size.x,
             .height = player->size.y,
         },
@@ -182,4 +182,25 @@ void player_render(void)
     //         },
     //         RED);
     // }
+}
+
+// ------------------------------------------------------------------------------------------------
+
+static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last)
+{
+    // Clamp to map bounds
+    int col_start = (int)floorf(r.x / MAP_TILE_SIZE);
+    int row_start = (int)floorf(r.y / MAP_TILE_SIZE);
+    int col_end = (int)ceilf((r.x + r.width) / MAP_TILE_SIZE);
+    int row_end = (int)ceilf((r.y + r.height) / MAP_TILE_SIZE);
+
+    // Clamp to legal indices
+    if (col_start < 0) col_start = 0;
+    if (row_start < 0) row_start = 0;
+    if (col_end > MAP_COL_TILES) col_end = MAP_COL_TILES;
+    if (row_end > MAP_ROW_TILES) row_end = MAP_ROW_TILES;
+
+    // Convert the 2‑D region to a 1‑D range (row‑major)
+    *out_first = (size_t)(row_start * MAP_COL_TILES + col_start);
+    *out_last = (size_t)((row_end * MAP_COL_TILES + col_end) - 1);
 }

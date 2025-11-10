@@ -4,6 +4,7 @@
 #include "gfx.h"
 #include "input.h"
 #include "level.h"
+#include "player.h"
 #include "state.h"
 #include "utils.h"
 #include <raylib.h>

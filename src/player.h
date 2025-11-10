@@ -1,6 +1,8 @@
 #ifndef PLAYER_H_
 #define PLAYER_H_
 
+#include "arena.h"
+#include "state.h"
 #include "utils.h"
 #include <raylib.h>
 
@@ -13,6 +15,7 @@ typedef struct {
     bool on_ground;
 } Player;
 
+bool player_new(MemoryArena* level_mem, GameState* game_state);
 void player_update(const f32 dt);
 void player_render(void);
 void player_reset(Player* player);

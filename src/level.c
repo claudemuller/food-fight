@@ -24,8 +24,6 @@ static bool update_edit_mode_tileset(void);
 static void render_edit_mode_tileset(void);
 static void render_edit_mode_brush(void);
 
-static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last);
-
 bool level_init(MemoryArena* level_mem, GameState* game_state)
 {
     state = game_state;
@@ -63,6 +61,11 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
     f32 map_h = state->active_level->tilemap.tiles_high * state->active_level->tilemap.tile_size;
     Vector2 map_centre = {map_w * 0.5f, map_h * 0.5f};
     state->camera.target = map_centre;
+
+    if (!player_new(level_mem, state)) {
+        util_error("Failed to start level");
+        return false;
+    }
 
     player_reset(&state->active_level->player);
     state->camera.target = state->active_level->player.pos;
@@ -403,23 +406,4 @@ static void render_edit_mode_brush(void)
     }
 
     DrawRectangleLinesEx(dst, DEBUG_UI_LINE_THICKNESS / state->camera.zoom, GREEN);
-}
-
-static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last)
-{
-    // Clamp to map bounds
-    int col_start = (int)floorf(r.x / MAP_TILE_SIZE);
-    int row_start = (int)floorf(r.y / MAP_TILE_SIZE);
-    int col_end = (int)ceilf((r.x + r.width) / MAP_TILE_SIZE);
-    int row_end = (int)ceilf((r.y + r.height) / MAP_TILE_SIZE);
-
-    // Clamp to legal indices
-    if (col_start < 0) col_start = 0;
-    if (row_start < 0) row_start = 0;
-    if (col_end > MAP_COL_TILES) col_end = MAP_COL_TILES;
-    if (row_end > MAP_ROW_TILES) row_end = MAP_ROW_TILES;
-
-    // Convert the 2‑D region to a 1‑D range (row‑major)
-    *out_first = (size_t)(row_start * MAP_COL_TILES + col_start);
-    *out_last = (size_t)((row_end * MAP_COL_TILES + col_end) - 1);
 }
