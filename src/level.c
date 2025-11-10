@@ -77,11 +77,10 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
         .pos = player_wpos,
         .size =
             {
-                .x = 18, // * state->camera.zoom,
-                .y = 18, // * state->camera.zoom,
+                .x = 18,
+                .y = 18,
             },
     };
-    util_debug("%f %f", state->active_level->player.pos.x, state->active_level->player.pos.y);
 
     state->camera.target = state->active_level->player.pos;
 
@@ -135,8 +134,12 @@ void level_render_edit_mode_ui(void)
 Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w, const f32 screen_h)
 {
     // Divide by zoom to get number of world units that fits on screen
-    f32 view_w = screen_w / cam->zoom;
-    f32 view_h = screen_h / cam->zoom;
+    f32 view_w = screen_w;
+    f32 view_h = screen_h;
+    if (cam->zoom > 0.0f || cam->zoom < 0.0f) {
+        view_w = screen_w / cam->zoom;
+        view_h = screen_h / cam->zoom;
+    }
 
     // Get camera bounds
     f32 camera_left = cam->target.x - view_w * 0.5f;
@@ -145,17 +148,6 @@ Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w,
     // Convert screen space point to world space point
     f32 world_x = camera_left + (spos.x / screen_w) * view_w;
     f32 world_y = camera_top + (spos.y / screen_h) * view_h;
-
-    util_debug("spos: %f %f - czoom: %f - view: %f %f - cpos: %f %f - wpos: %f %f",
-               screen_w,
-               screen_h,
-               cam->zoom,
-               view_w,
-               view_h,
-               camera_left,
-               camera_top,
-               world_x,
-               world_y);
 
     return (Vector2){
         .x = world_x,
@@ -221,8 +213,6 @@ static void update_player(float dt)
 
         size_t first, last;
         get_overlapping_tiles(horz_box, &first, &last);
-
-        // util_debug("first: %zu, last:%zu", first, last);
 
         // TODO: fix the first and last not being correct
         // for (size_t i = first; i <= last; ++i) {
@@ -350,7 +340,7 @@ static void update_edit_mode(void)
         mouse_down_grid_y = gridy;
     }
     if (input_is_key_down(&state->input.kb, KB_LSHFT)) {
-        tm->brush.size.x = abs(gridx - mouse_down_grid_x) * tm->tile_size;
+        tm->brush.size.x = abs(gridx - mouse_down_grid_x + 1) * tm->tile_size;
         tm->brush.size.x = clamp(tm->brush.size.x, tm->tile_size, MAX_BRUSH_SIZE);
         tm->brush.size.y = abs(gridy - mouse_down_grid_y) * tm->tile_size;
         tm->brush.size.y = clamp(tm->brush.size.y, tm->tile_size, MAX_BRUSH_SIZE);
@@ -381,11 +371,6 @@ static void update_edit_mode(void)
                         },
                     .solid = true,
                 };
-
-                util_debug("i:%f %f %f",
-                           idx,
-                           tm->tiles[(curx * tm->tile_size) + cury].dst.x,
-                           tm->tiles[(curx * tm->tile_size) + cury].dst.y);
             }
         }
     }

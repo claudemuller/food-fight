@@ -109,12 +109,8 @@ static void update(void)
     if (input_is_mouse_down(&state.input.mouse, MB_MIDDLE)) {
         f32 m_delta_x = state.input.mouse.pos_px.x - state.input.mouse.down_pos_px.x;
         f32 m_delta_y = state.input.mouse.pos_px.y - state.input.mouse.down_pos_px.y;
-        // state.camera.target.x -= m_delta_x * 0.05f;
-        // state.camera.target.y -= m_delta_y * 0.05f;
-        state.camera.target.x -= m_delta_x / state.camera.zoom;
-        state.camera.target.y -= m_delta_y / state.camera.zoom;
-
-        // util_info("%f %f", m_delta_x, m_delta_y);
+        state.camera.target.x -= m_delta_x / state.camera.zoom * 0.05f;
+        state.camera.target.y -= m_delta_y / state.camera.zoom * 0.05f;
     }
 
     // Keep map in window
@@ -126,28 +122,9 @@ static void update(void)
     f32 min_target_y = half_view_h;
     f32 max_target_y = map_h - half_view_h;
 
-    // If the map is smaller than the view on a given axis, just centre it
-    // if (map_w <= WINDOW_WIDTH) {
-    //     min_target_x = max_target_x = map_w * 0.5f;
-    // }
-    // if (map_h <= WINDOW_HEIGHT) {
-    //     min_target_y = max_target_y = map_h * 0.5f;
-    // }
-
     // Clamp the target (you may already have panning logic – just apply the clamp afterwards)
     state.camera.target.x = clampf(state.camera.target.x, min_target_x, max_target_x);
     state.camera.target.y = clampf(state.camera.target.y, min_target_y, max_target_y);
-
-    Vector2 desired_center = state.camera.target;
-    // state.camera.offset.x = clamp(desired_center.x - half_view_w, 0.0f, map_w - WINDOW_WIDTH / state.camera.zoom);
-    // state.camera.offset.y = clamp(desired_center.y - half_view_h, 0.0f, map_h - WINDOW_HEIGHT / state.camera.zoom);
-
-    // util_info("%f %f", state.camera.target.x, state.camera.target.y);
-
-    // state.camera.offset = (Vector2){
-    //     WINDOW_WIDTH * 0.5f,
-    //     WINDOW_HEIGHT * 0.5f,
-    // };
 
     level_update();
 }
