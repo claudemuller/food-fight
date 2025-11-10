@@ -2,6 +2,7 @@
 #define LEVEL_H_
 
 #include "arena.h"
+#include "player.h"
 #include "raylib.h"
 #include "state.h"
 #include "utils.h"
@@ -53,15 +54,6 @@ typedef struct {
     Tileset tileset;
     Tile* tiles;
 } Tilemap;
-
-typedef struct {
-    Rectangle src;
-    Vector2 pos;
-    Vector2 size;
-    Vector2 vel;
-    Texture2D* texture;
-    bool on_ground;
-} Player;
 
 typedef struct Level {
     Texture2D* bg_texture;
