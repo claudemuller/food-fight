@@ -169,10 +169,15 @@ static void render_debug_ui(void)
     u32 map_w = tm->tiles_wide * tm->tile_size;
     Font* font = assetmgr_get_font("main");
 
-    DrawTextEx(*font, TextFormat("Zoom: x%.2f", state.camera.zoom), (Vector2){10, 10}, 16, 1.0f, PALEBLUE_D);
+    DrawTextEx(*font,
+               TextFormat("Zoom: x%.2f", state.camera.zoom),
+               (Vector2){GetScreenWidth() - 150, 10},
+               16,
+               1.0f,
+               PALEBLUE_D);
     DrawTextEx(*font,
                TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"),
-               (Vector2){10, 25},
+               (Vector2){GetScreenWidth() - 150, 25},
                16,
                1.0f,
                PALEBLUE_D);

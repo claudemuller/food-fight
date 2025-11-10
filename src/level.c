@@ -325,8 +325,8 @@ static void render_player(void)
 
 static void update_edit_mode(void)
 {
-    static i32 mouse_down_grid_x = 0;
-    static i32 mouse_down_grid_y = 0;
+    static i32 scale_mode_grid_x = 0;
+    static i32 scale_mode_grid_y = 0;
 
     Tilemap* tm = &active_level->tilemap;
 
@@ -336,13 +336,13 @@ static void update_edit_mode(void)
     u16 gridy = packed_coords & 0xFFFF;
 
     if (input_is_key_pressed(&state->input.kb, KB_LSHFT)) {
-        mouse_down_grid_x = gridx;
-        mouse_down_grid_y = gridy;
+        scale_mode_grid_x = gridx;
+        scale_mode_grid_y = gridy;
     }
     if (input_is_key_down(&state->input.kb, KB_LSHFT)) {
-        tm->brush.size.x = abs(gridx - mouse_down_grid_x + 1) * tm->tile_size;
+        tm->brush.size.x = abs(gridx - scale_mode_grid_x + 1) * tm->tile_size;
         tm->brush.size.x = clamp(tm->brush.size.x, tm->tile_size, MAX_BRUSH_SIZE);
-        tm->brush.size.y = abs(gridy - mouse_down_grid_y) * tm->tile_size;
+        tm->brush.size.y = abs(gridy - scale_mode_grid_y) * tm->tile_size;
         tm->brush.size.y = clamp(tm->brush.size.y, tm->tile_size, MAX_BRUSH_SIZE);
     }
 
@@ -418,6 +418,11 @@ static void render_edit_mode_ui(void)
 
     Font* font = assetmgr_get_font("main");
     DrawTextEx(*font, "Brush: ", (Vector2){dst.x - 80.0f, dst.y + 8}, 22.0f, 1.0f, PALEBLUE_D);
+
+    if (state->state == GAME_STATE_EDITING) {
+        DrawTextEx(*font, "Editing:", (Vector2){10.0f, 10}, 20.0f, 1.0f, PALEBLUE_D);
+        DrawTextEx(*font, "Reset Player: F2", (Vector2){10.0f, 30}, 18.0f, 1.0f, PALEBLUE_D);
+    }
 }
 
 static bool update_edit_mode_tileset(void)
@@ -447,12 +452,32 @@ static bool update_edit_mode_tileset(void)
         if (!tm->brush.is_set) {
             tm->brush.is_set = true;
         }
-        tm->brush.src.x = tm->tileset.hovered_tile.x * tm->tileset.tile_size;
-        tm->brush.src.y = tm->tileset.hovered_tile.y * tm->tileset.tile_size;
-        tm->brush.src.width = tm->tileset.tile_size;
-        tm->brush.src.height = tm->tileset.tile_size;
-        tm->brush.size.x = tm->tile_size;
-        tm->brush.size.y = tm->tile_size;
+
+        if (input_is_key_down(&state->input.kb, KB_LSHFT)) {
+            static i32 scale_mode_grid_x = 0;
+            static i32 scale_mode_grid_y = 0;
+
+            u32 packed_coords = worldp_to_gridp(
+                state->input.mouse.pos_px.x, state->input.mouse.pos_px.y, state->active_level->tilemap.tile_size);
+            u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
+            u16 gridy = packed_coords & 0xFFFF;
+
+            tm->brush.src.x = abs(gridx - scale_mode_grid_x + 1) * tm->tile_size;
+            tm->brush.src.x = clamp(tm->brush.size.x, tm->tile_size, MAX_BRUSH_SIZE);
+            tm->brush.src.y = abs(gridy - scale_mode_grid_y) * tm->tile_size;
+            tm->brush.src.y = clamp(tm->brush.size.y, tm->tile_size, MAX_BRUSH_SIZE);
+            tm->brush.src.width = tm->tileset.tile_size;
+            tm->brush.src.height = tm->tileset.tile_size;
+            tm->brush.size.x = tm->brush.src.width;
+            tm->brush.size.y = tm->brush.src.width;
+        } else {
+            tm->brush.src.x = tm->tileset.hovered_tile.x * tm->tileset.tile_size;
+            tm->brush.src.y = tm->tileset.hovered_tile.y * tm->tileset.tile_size;
+            tm->brush.src.width = tm->tileset.tile_size;
+            tm->brush.src.height = tm->tileset.tile_size;
+            tm->brush.size.x = tm->tile_size;
+            tm->brush.size.y = tm->tile_size;
+        }
     }
 
     return true;
