@@ -181,8 +181,8 @@ static void update_player(float dt)
         player->vel.x = 0.0f;
     }
 
-    if (input_is_key_down(&state->input.kb, KB_SPACE)) {
-        player->vel.y = PLAYER_JUMP_STRENGTH;
+    if (input_is_key_pressed(&state->input.kb, KB_SPACE)) {
+        player->vel.y -= PLAYER_JUMP_STRENGTH;
     }
 
     player->vel.y += GRAVITY * dt;
