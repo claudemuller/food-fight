@@ -16,6 +16,8 @@ bool assetmgr_init(MemoryArena* gmem)
     }
 
     mgr->n_textures = 0;
+    mgr->n_fonts = 0;
+
     game_mem = gmem;
 
     return true;
@@ -61,9 +63,53 @@ Texture2D* assetmgr_get_texture(const char* id)
     return NULL;
 }
 
+Font* assetmgr_load_font(const char* fname, const char* id)
+{
+    if (mgr->n_fonts >= MAX_FONTS) {
+        util_error("Asset manager has no more space for fonts");
+        return NULL;
+    }
+
+    // Check if font already exisits
+    for (size_t i = 0; i < mgr->n_fonts; ++i) {
+        if (strncmp(mgr->font_ids[i], id, strlen(id)) == 0) {
+            return &mgr->fonts[i];
+        }
+    }
+
+    mgr->fonts[mgr->n_fonts] = LoadFont(fname);
+    if (!IsFontValid(mgr->fonts[mgr->n_fonts])) {
+        util_error("Failed to load font");
+        return NULL;
+    }
+
+    size_t idlen = strlen(id);
+    char* fontid = (char*)arena_alloc_aligned(game_mem, idlen, 16);
+    strncpy(fontid, id, idlen);
+
+    mgr->font_ids[mgr->n_fonts] = fontid;
+    mgr->n_fonts++;
+
+    return &mgr->fonts[mgr->n_fonts - 1];
+}
+
+Font* assetmgr_get_font(const char* id)
+{
+    for (size_t i = 0; i < mgr->n_fonts; ++i) {
+        if (strncmp(mgr->font_ids[i], id, strlen(id)) == 0) {
+            return &mgr->fonts[i];
+        }
+    }
+    return NULL;
+}
+
 void assetmgr_destroy(void)
 {
     for (size_t i = 0; i < mgr->n_textures; ++i) {
         UnloadTexture(mgr->textures[i]);
+    }
+
+    for (size_t i = 0; i < mgr->n_fonts; ++i) {
+        UnloadFont(mgr->fonts[i]);
     }
 }

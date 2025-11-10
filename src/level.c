@@ -25,7 +25,6 @@ static bool update_edit_mode_tileset(void);
 static void render_edit_mode_tileset(void);
 static void render_edit_mode_brush(void);
 static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last);
-static u32 worldp_to_gridp(float mouse_x, float mouse_y, u8 tile_size);
 
 bool level_init(MemoryArena* level_mem, GameState* game_state)
 {
@@ -60,14 +59,31 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
         return false;
     }
 
+    f32 map_w = state->active_level->tilemap.tiles_wide * state->active_level->tilemap.tile_size;
+    f32 map_h = state->active_level->tilemap.tiles_high * state->active_level->tilemap.tile_size;
+    Vector2 map_centre = {map_w * 0.5f, map_h * 0.5f};
+    state->camera.target = map_centre;
+
+    Vector2 player_wpos = screenp_to_worldp(
+        (Vector2){
+            .x = GetScreenWidth() * 0.5f,
+            .y = GetScreenHeight() * 0.5f,
+        },
+        &state->camera,
+        GetScreenWidth(),
+        GetScreenHeight());
+
     state->active_level->player = (Player){
-        .pos = screenp_to_worldp(state->camera.target, &state->camera, GetScreenWidth(), GetScreenHeight()),
+        .pos = player_wpos,
         .size =
             {
-                .x = 18 * SCALE,
-                .y = 18 * SCALE,
+                .x = 18, // * state->camera.zoom,
+                .y = 18, // * state->camera.zoom,
             },
     };
+    util_debug("%f %f", state->active_level->player.pos.x, state->active_level->player.pos.y);
+
+    state->camera.target = state->active_level->player.pos;
 
     active_level->is_loaded = true;
 
@@ -130,16 +146,25 @@ Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w,
     f32 world_x = camera_left + (spos.x / screen_w) * view_w;
     f32 world_y = camera_top + (spos.y / screen_h) * view_h;
 
+    util_debug("spos: %f %f - czoom: %f - view: %f %f - cpos: %f %f - wpos: %f %f",
+               screen_w,
+               screen_h,
+               cam->zoom,
+               view_w,
+               view_h,
+               camera_left,
+               camera_top,
+               world_x,
+               world_y);
+
     return (Vector2){
         .x = world_x,
         .y = world_y,
     };
 }
 
-// ------------------------------------------------------------------------------------------------
-
 // World point to grid point.
-static u32 worldp_to_gridp(float mouse_x, float mouse_y, u8 tile_size)
+u32 worldp_to_gridp(float mouse_x, float mouse_y, u8 tile_size)
 {
     Vector2 world_space =
         screenp_to_worldp((Vector2){mouse_x, mouse_y}, &state->camera, GetScreenWidth(), GetScreenHeight());
@@ -150,6 +175,8 @@ static u32 worldp_to_gridp(float mouse_x, float mouse_y, u8 tile_size)
 
     return (gridx << 16) | (gridy & 0xFFFF);
 }
+
+// ------------------------------------------------------------------------------------------------
 
 static void render_bg(void)
 {
@@ -334,17 +361,16 @@ static void update_edit_mode(void)
         u32 start_gridx = gridx;
         u32 start_gridy = gridy;
 
-        util_info("x: %d x: %d", start_gridx, start_gridy);
-
-        u8 brush_row_tiles = tm->brush.size.y / tm->tile_size;
-        u8 brush_col_tiles = tm->brush.size.x / tm->tile_size;
+        u16 brush_row_tiles = (u16)(tm->brush.size.y / tm->tile_size);
+        u16 brush_col_tiles = (u16)(tm->brush.size.x / tm->tile_size);
 
         for (size_t i = 0; i < brush_row_tiles; ++i) {
             for (size_t j = 0; j < brush_col_tiles; ++j) {
                 u32 curx = start_gridx + j;
                 u32 cury = start_gridy + i;
+                size_t idx = (size_t)((curx * tm->tile_size) + cury);
 
-                tm->tiles[(curx * tm->tile_size) + cury] = (Tile){
+                tm->tiles[idx] = (Tile){
                     .src = tm->brush.src,
                     .dst =
                         {
@@ -355,6 +381,11 @@ static void update_edit_mode(void)
                         },
                     .solid = true,
                 };
+
+                util_debug("i:%f %f %f",
+                           idx,
+                           tm->tiles[(curx * tm->tile_size) + cury].dst.x,
+                           tm->tiles[(curx * tm->tile_size) + cury].dst.y);
             }
         }
     }
@@ -491,8 +522,6 @@ static void render_edit_mode_brush(void)
         for (size_t j = 0; j < brush_col_tiles; ++j) {
             u32 curx = (start_gridx + j) * tm->tile_size;
             u32 cury = (start_gridy + i) * tm->tile_size;
-
-            util_info("gridx: %d gridy: %d - curx: %d cury: %d", gridx, gridy, curx, cury);
 
             dst.x = curx;
             dst.y = cury;

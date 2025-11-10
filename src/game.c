@@ -11,7 +11,6 @@
 static MemoryArena* game_mem;
 static MemoryArena level_mem;
 static GameState state;
-static f32 zoom;
 
 static bool start_new(MemoryArena* level_mem);
 static void update(void);
@@ -31,6 +30,12 @@ bool game_init(MemoryArena* mem)
         return false;
     }
 
+    Font* f = assetmgr_load_font("assets/fonts/FiraCode-Regular.ttf", "main");
+    if (!f) {
+        util_error("Failed to start level");
+        return false;
+    }
+
     state.is_running = true;
 
     return true;
@@ -45,9 +50,8 @@ void game_run(void)
     }
 
     while (!WindowShouldClose() && state.is_running) {
-        input_process(&state.input);
-        update();
         render();
+        update();
     }
 }
 
@@ -60,43 +64,18 @@ void game_destroy(void)
 
 static bool start_new(MemoryArena* level_mem)
 {
+    Vector2 screen_mid = {WINDOW_WIDTH * 0.5f, WINDOW_HEIGHT * 0.5f};
+    state.camera = (Camera2D){
+        .offset = screen_mid,
+        .zoom = SCALE,
+    };
+
     if (!level_init(level_mem, &state) || !state.active_level->is_loaded) {
         util_error("Failed to start level");
         return false;
     }
 
-    Vector2 screen_mid = {WINDOW_WIDTH * 0.5f, WINDOW_HEIGHT * 0.5f};
-    f32 map_w = state.active_level->tilemap.tiles_wide * state.active_level->tilemap.tile_size;
-    f32 map_h = state.active_level->tilemap.tiles_high * state.active_level->tilemap.tile_size;
-    Vector2 map_centre = {map_w * 0.5f, map_h * 0.5f};
-
-    zoom = SCALE;
-    state.camera = (Camera2D){
-        .target = map_centre,
-        .offset = screen_mid,
-        .rotation = 0.0f,
-        .zoom = zoom,
-    };
-
     state.state = GAME_STATE_EDITING;
-
-    // state.player = (Player){
-    //     // .velocity = {0, 0, 0},
-    //     // .size = 1,
-    //     .movement_speed = 10,
-    //     // .colour = BLUE,
-    // };
-    // state.player.position = (Vector3){0, state.player.size + 2, 0};
-    // state.player.model = LoadModelFromMesh(GenMeshCube(state.player.size, state.player.size, state.player.size));
-
-    // g_floor = (Floor){
-    //     .position = {0, 0, 0},
-    //     .size = {.width = 20.0, .height = 20.0},
-    //     .tint = WHITE,
-    //     .texture = LoadTexture("assets/textures/ground.png"),
-    // };
-    // g_floor.model = LoadModelFromMesh(GenMeshPlane(g_floor.size.width, g_floor.size.height, 10, 10));
-    // SetMaterialTexture(&g_floor.model.materials[0], MATERIAL_MAP_ALBEDO, g_floor.texture);
 
     // TODO: read level file data
 
@@ -125,7 +104,6 @@ static void update(void)
         f32 max_zoom = MAX_ZOOM;
 
         state.camera.zoom = clampf(state.camera.zoom + state.input.mouse.wheel_delta, min_zoom, max_zoom);
-        zoom = state.camera.zoom;
     }
 
     if (input_is_mouse_down(&state.input.mouse, MB_MIDDLE)) {
@@ -178,6 +156,9 @@ static void render(void)
 {
     BeginDrawing();
     {
+        // GLFW shinnanigans
+        input_process(&state.input);
+
         ClearBackground(PALEBLUE);
 
         BeginMode2D(state.camera);
@@ -204,8 +185,50 @@ static void render_debug_ui(void)
 {
     Tilemap* tm = &state.active_level->tilemap;
     u32 map_w = tm->tiles_wide * tm->tile_size;
-    DrawText(TextFormat("Zoom: x%.2f", zoom), 10, 10, 16, PALEBLUE_D);
-    DrawText(
-        TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"), 10, 25, 16, PALEBLUE_D);
-    DrawText("X", map_w - 15, 10, 16, PALEBLUE_D);
+    Font* font = assetmgr_get_font("main");
+
+    DrawTextEx(*font, TextFormat("Zoom: x%.2f", state.camera.zoom), (Vector2){10, 10}, 16, 1.0f, PALEBLUE_D);
+    DrawTextEx(*font,
+               TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"),
+               (Vector2){10, 25},
+               16,
+               1.0f,
+               PALEBLUE_D);
+
+    Vector2 mpos = GetMousePosition();
+
+    Vector2 renpos = mpos;
+    if (renpos.x > GetScreenWidth() - 255) {
+        renpos.x -= 280;
+    }
+    renpos.y = mpos.y - 55;
+    if (renpos.y <= 5) {
+        renpos.y += 85;
+    }
+
+    DrawTextEx(*font, TextFormat("screen_pos: %.2f x %.2f", mpos.x, mpos.y), renpos, 18, 1.0f, PALEBLUE_D);
+
+    Vector2 wpos = screenp_to_worldp(mpos, &state.camera, GetScreenWidth(), GetScreenHeight());
+    DrawTextEx(*font,
+               TextFormat("world_pos: %.2f x %.2f", wpos.x, wpos.y),
+               (Vector2){
+                   .x = renpos.x,
+                   .y = renpos.y + 20,
+               },
+               18,
+               1.0f,
+               PALEBLUE_D);
+
+    u32 gpos = worldp_to_gridp(mpos.x, mpos.y, tm->tile_size);
+    u16 gridx = (gpos >> 16) & 0xFFFF; // high 16 bits
+    u16 gridy = gpos & 0xFFFF;
+    DrawTextEx(*font,
+               TextFormat("grid_pos: %d x %d", gridx, gridy),
+               (Vector2){
+                   .x = renpos.x,
+                   .y = renpos.y + 40,
+               },
+               18,
+               1.0f,
+               PALEBLUE_D);
 }
