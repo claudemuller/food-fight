@@ -39,6 +39,10 @@ void main_menu_init(GameState* game_state)
 
 void main_menu_update(void)
 {
+    if (input_is_key_pressed(&state->input.kb, KB_ESCAPE)) {
+        state->is_running = false;
+    }
+
     for (size_t i = 0; i < n_mm_mitems; ++i) {
         mm_mitems[i].hover = false;
         if (CheckCollisionPointRec(GetMousePosition(), mm_mitems[i].rec)) {
