@@ -17,7 +17,9 @@ static GameState* state;
 static void render_bg(void);
 static void render_map(void);
 static void update_player(const f32 dt);
+static void reset_player(Player* player);
 static void render_player(void);
+
 static void update_edit_mode(void);
 static void render_edit_mode_grid(void);
 static void render_edit_mode_ui(void);
@@ -64,24 +66,7 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
     Vector2 map_centre = {map_w * 0.5f, map_h * 0.5f};
     state->camera.target = map_centre;
 
-    Vector2 player_wpos = screenp_to_worldp(
-        (Vector2){
-            .x = GetScreenWidth() * 0.5f,
-            .y = GetScreenHeight() * 0.5f,
-        },
-        &state->camera,
-        GetScreenWidth(),
-        GetScreenHeight());
-
-    state->active_level->player = (Player){
-        .pos = player_wpos,
-        .size =
-            {
-                .x = 18,
-                .y = 18,
-            },
-    };
-
+    reset_player(&state->active_level->player);
     state->camera.target = state->active_level->player.pos;
 
     active_level->is_loaded = true;
@@ -196,6 +181,10 @@ static void update_player(float dt)
         player->vel.x = 0.0f;
     }
 
+    if (input_is_key_down(&state->input.kb, KB_SPACE)) {
+        player->vel.y = PLAYER_JUMP_STRENGTH;
+    }
+
     player->vel.y += GRAVITY * dt;
     player->vel.y = clampf(player->vel.y, -TERMINAL_VELOCITY, TERMINAL_VELOCITY);
 
@@ -278,6 +267,27 @@ static void update_player(float dt)
     state->camera.target = player->pos;
 }
 
+static void reset_player(Player* player)
+{
+    Vector2 player_wpos = screenp_to_worldp(
+        (Vector2){
+            .x = GetScreenWidth() * 0.5f,
+            .y = GetScreenHeight() * 0.5f,
+        },
+        &state->camera,
+        GetScreenWidth(),
+        GetScreenHeight());
+
+    *player = (Player){
+        .pos = player_wpos,
+        .size =
+            {
+                .x = 18,
+                .y = 18,
+            },
+    };
+}
+
 static void render_player(void)
 {
     Player player = state->active_level->player;
@@ -334,6 +344,10 @@ static void update_edit_mode(void)
         state->input.mouse.pos_px.x, state->input.mouse.pos_px.y, state->active_level->tilemap.tile_size);
     u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
     u16 gridy = packed_coords & 0xFFFF;
+
+    if (input_is_key_pressed(&state->input.kb, KB_F2)) {
+        reset_player(&state->active_level->player);
+    }
 
     if (input_is_key_pressed(&state->input.kb, KB_LSHFT)) {
         scale_mode_grid_x = gridx;
