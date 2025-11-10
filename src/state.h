@@ -20,8 +20,10 @@
 #define JUMP_SPEED 10.0f
 
 typedef enum {
+    GAME_STATE_MAIN_MENU,
     GAME_STATE_PLAYING,
     GAME_STATE_EDITING,
+    GAME_STATE_GAME_OVER,
 } State;
 
 typedef struct Level Level;

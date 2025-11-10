@@ -5,6 +5,7 @@
 #include "input.h"
 #include "raylib.h"
 #include "state.h"
+#include "ui.h"
 #include "utils.h"
 #include <SDL3/SDL_render.h>
 #include <math.h>
@@ -277,11 +278,11 @@ static void render_edit_mode_ui(void)
     }
 
     Font* font = assetmgr_get_font("main");
-    DrawTextEx(*font, "Brush: ", (Vector2){dst.x - 80.0f, dst.y + 8}, 22.0f, 1.0f, PALEBLUE_D);
+    DrawTextEx(*font, "Brush: ", (Vector2){dst.x - 80.0f, dst.y + 8}, UI_EDIT_MODE_SIZE, 1.0f, PALEBLUE_D);
 
     if (state->state == GAME_STATE_EDITING) {
-        DrawTextEx(*font, "Editing:", (Vector2){10.0f, 10}, 20.0f, 1.0f, PALEBLUE_D);
-        DrawTextEx(*font, "Reset Player: F2", (Vector2){10.0f, 30}, 18.0f, 1.0f, PALEBLUE_D);
+        DrawTextEx(*font, "Editing:", (Vector2){10.0f, 10}, UI_HEADER_SIZE_ALT, 1.0f, PALEBLUE_D);
+        DrawTextEx(*font, "Reset Player: F2", (Vector2){10.0f, 30}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
     }
 }
 

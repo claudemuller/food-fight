@@ -4,8 +4,9 @@
 #include "gfx.h"
 #include "input.h"
 #include "level.h"
-#include "player.h"
+#include "main_menu_screen.h"
 #include "state.h"
+#include "ui.h"
 #include "utils.h"
 #include <raylib.h>
 
@@ -24,7 +25,7 @@ bool game_init(MemoryArena* mem)
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Food Fight!");
     SetTargetFPS(60);
-    SetExitKey(KEY_ESCAPE);
+    SetExitKey(0);
 
     if (!assetmgr_init(game_mem)) {
         util_error("Failed to init asset manager");
@@ -42,6 +43,8 @@ bool game_init(MemoryArena* mem)
         return false;
     }
 
+    main_menu_init(&state);
+
     state.debug = true;
     state.is_running = true;
 
@@ -57,8 +60,21 @@ void game_run(void)
     }
 
     while (!WindowShouldClose() && state.is_running) {
-        render();
-        update();
+        switch (state.state) {
+        case GAME_STATE_MAIN_MENU: {
+            main_menu_update();
+            main_menu_render();
+        } break;
+
+        case GAME_STATE_EDITING:
+        case GAME_STATE_PLAYING: {
+            render();
+            update();
+        } break;
+
+        case GAME_STATE_GAME_OVER: {
+        } break;
+        }
     }
 }
 
@@ -83,7 +99,7 @@ static bool start_new(MemoryArena* level_mem)
         return false;
     }
 
-    state.state = GAME_STATE_EDITING;
+    state.state = GAME_STATE_MAIN_MENU;
 
     // TODO: read level file data
 
@@ -94,6 +110,10 @@ static void update(void)
 {
     if (!state.active_level->is_loaded) {
         return;
+    }
+
+    if (input_is_key_pressed(&state.input.kb, KB_ESCAPE)) {
+        state.state = GAME_STATE_MAIN_MENU;
     }
 
     if (input_is_key_pressed(&state.input.kb, KB_F1)) {
@@ -181,13 +201,13 @@ static void render_debug_ui(void)
     DrawTextEx(*font,
                TextFormat("Zoom: x%.2f", state.camera.zoom),
                (Vector2){GetScreenWidth() - 150, 10},
-               16,
+               UI_DEBUG_FONT_SIZE,
                1.0f,
                PALEBLUE_D);
     DrawTextEx(*font,
                TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"),
                (Vector2){GetScreenWidth() - 150, 25},
-               16,
+               UI_DEBUG_FONT_SIZE,
                1.0f,
                PALEBLUE_D);
 
@@ -211,7 +231,7 @@ static void render_debug_ui(void)
                    .x = renpos.x,
                    .y = renpos.y + 20,
                },
-               18,
+               UI_TEXT_SIZE,
                1.0f,
                PALEBLUE_D);
 
@@ -223,7 +243,7 @@ static void render_debug_ui(void)
                    .x = renpos.x,
                    .y = renpos.y + 40,
                },
-               18,
+               UI_TEXT_SIZE,
                1.0f,
                PALEBLUE_D);
 }
