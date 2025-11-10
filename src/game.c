@@ -1,6 +1,7 @@
 #include "game.h"
 #include "arena.h"
 #include "asset_manager.h"
+#include "gameover_screen.h"
 #include "gfx.h"
 #include "input.h"
 #include "level.h"
@@ -44,6 +45,7 @@ bool game_init(MemoryArena* mem)
     }
 
     main_menu_init(&state);
+    game_over_init(&state);
 
     state.debug = true;
     state.is_running = true;
@@ -62,8 +64,8 @@ void game_run(void)
     while (!WindowShouldClose() && state.is_running) {
         switch (state.state) {
         case GAME_STATE_MAIN_MENU: {
-            main_menu_update();
             main_menu_render();
+            main_menu_update();
         } break;
 
         case GAME_STATE_EDITING:
@@ -73,6 +75,8 @@ void game_run(void)
         } break;
 
         case GAME_STATE_GAME_OVER: {
+            game_over_render();
+            game_over_update();
         } break;
         }
     }

@@ -54,6 +54,10 @@ void player_update(float dt)
     f32 new_x = player->pos.x + player->vel.x * dt;
     f32 new_y = player->pos.y + player->vel.y * dt;
 
+    if (new_y >= tm->tiles_high * tm->tile_size) {
+        state->state = GAME_STATE_GAME_OVER;
+    }
+
     // Horizontal sweep and resolution
     if (player->vel.x != 0.0f) {
         Rectangle horz_box = {
