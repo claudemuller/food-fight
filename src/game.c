@@ -62,6 +62,7 @@ void game_run(void)
 
 void game_destroy(void)
 {
+    assetmgr_destroy();
     CloseWindow();
 }
 
@@ -206,11 +207,10 @@ static void render_debug_ui(void)
                1.0f,
                PALEBLUE_D);
 
-    u32 gpos = worldp_to_gridp(mpos.x, mpos.y, tm->tile_size);
-    u16 gridx = (gpos >> 16) & 0xFFFF; // high 16 bits
-    u16 gridy = gpos & 0xFFFF;
+    Vector2 grid = worldp_to_gridp((Vector2){mpos.x, mpos.y}, tm->tile_size);
+
     DrawTextEx(*font,
-               TextFormat("grid_pos: %d x %d", gridx, gridy),
+               TextFormat("grid_pos: %d x %d", grid.x, grid.y),
                (Vector2){
                    .x = renpos.x,
                    .y = renpos.y + 40,

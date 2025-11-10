@@ -140,17 +140,22 @@ Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w,
     };
 }
 
-// World point to grid point.
-u32 worldp_to_gridp(float mouse_x, float mouse_y, u8 tile_size)
+// Screen point to grid point.
+Vector2 screenp_to_gridp(const Vector2 p, const u8 tile_size)
 {
-    Vector2 world_space =
-        screenp_to_worldp((Vector2){mouse_x, mouse_y}, &state->camera, GetScreenWidth(), GetScreenHeight());
+    Vector2 world_space = screenp_to_worldp(p, &state->camera, GetScreenWidth(), GetScreenHeight());
 
+    return worldp_to_gridp(world_space, tile_size);
+}
+
+// World point to grid point.
+Vector2 worldp_to_gridp(const Vector2 p, const u8 tile_size)
+{
     // 3️⃣ Snap to the grid
-    int gridx = (int)floorf(world_space.x / (float)tile_size);
-    int gridy = (int)floorf(world_space.y / (float)tile_size);
-
-    return (gridx << 16) | (gridy & 0xFFFF);
+    return (Vector2){
+        .x = (int)floorf(p.x / (float)tile_size),
+        .y = (int)floorf(p.y / (float)tile_size),
+    };
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -340,30 +345,28 @@ static void update_edit_mode(void)
 
     Tilemap* tm = &active_level->tilemap;
 
-    u32 packed_coords = worldp_to_gridp(
-        state->input.mouse.pos_px.x, state->input.mouse.pos_px.y, state->active_level->tilemap.tile_size);
-    u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
-    u16 gridy = packed_coords & 0xFFFF;
+    Vector2 grid = screenp_to_gridp((Vector2){state->input.mouse.pos_px.x, state->input.mouse.pos_px.y},
+                                    state->active_level->tilemap.tile_size);
 
     if (input_is_key_pressed(&state->input.kb, KB_F2)) {
         reset_player(&state->active_level->player);
     }
 
     if (input_is_key_pressed(&state->input.kb, KB_LSHFT)) {
-        scale_mode_grid_x = gridx;
-        scale_mode_grid_y = gridy;
+        scale_mode_grid_x = grid.x;
+        scale_mode_grid_y = grid.y;
     }
     if (input_is_key_down(&state->input.kb, KB_LSHFT)) {
-        tm->brush.size.x = abs(gridx - scale_mode_grid_x + 1) * tm->tile_size;
+        tm->brush.size.x = abs((i32)grid.x - scale_mode_grid_x + 1) * tm->tile_size;
         tm->brush.size.x = clamp(tm->brush.size.x, tm->tile_size, MAX_BRUSH_SIZE);
-        tm->brush.size.y = abs(gridy - scale_mode_grid_y) * tm->tile_size;
+        tm->brush.size.y = abs((i32)grid.y - scale_mode_grid_y) * tm->tile_size;
         tm->brush.size.y = clamp(tm->brush.size.y, tm->tile_size, MAX_BRUSH_SIZE);
     }
 
     // Place tile
     if (input_is_mouse_down(&state->input.mouse, MB_LEFT)) {
-        u32 start_gridx = gridx;
-        u32 start_gridy = gridy;
+        u32 start_gridx = grid.x;
+        u32 start_gridy = grid.y;
 
         u16 brush_row_tiles = (u16)(tm->brush.size.y / tm->tile_size);
         u16 brush_col_tiles = (u16)(tm->brush.size.x / tm->tile_size);
@@ -471,14 +474,12 @@ static bool update_edit_mode_tileset(void)
             static i32 scale_mode_grid_x = 0;
             static i32 scale_mode_grid_y = 0;
 
-            u32 packed_coords = worldp_to_gridp(
-                state->input.mouse.pos_px.x, state->input.mouse.pos_px.y, state->active_level->tilemap.tile_size);
-            u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
-            u16 gridy = packed_coords & 0xFFFF;
+            Vector2 grid = screenp_to_gridp((Vector2){state->input.mouse.pos_px.x, state->input.mouse.pos_px.y},
+                                            state->active_level->tilemap.tile_size);
 
-            tm->brush.src.x = abs(gridx - scale_mode_grid_x + 1) * tm->tile_size;
+            tm->brush.src.x = abs((i32)grid.x - scale_mode_grid_x + 1) * tm->tile_size;
             tm->brush.src.x = clamp(tm->brush.size.x, tm->tile_size, MAX_BRUSH_SIZE);
-            tm->brush.src.y = abs(gridy - scale_mode_grid_y) * tm->tile_size;
+            tm->brush.src.y = abs((i32)grid.y - scale_mode_grid_y) * tm->tile_size;
             tm->brush.src.y = clamp(tm->brush.size.y, tm->tile_size, MAX_BRUSH_SIZE);
             tm->brush.src.width = tm->tileset.tile_size;
             tm->brush.src.height = tm->tileset.tile_size;
@@ -536,15 +537,13 @@ static void render_edit_mode_brush(void)
 {
     Tilemap* tm = &active_level->tilemap;
 
-    u32 packed_coords = worldp_to_gridp(
-        state->input.mouse.pos_px.x, state->input.mouse.pos_px.y, state->active_level->tilemap.tile_size);
-    u16 gridx = (packed_coords >> 16) & 0xFFFF; // high 16 bits
-    u16 gridy = packed_coords & 0xFFFF;
+    Vector2 grid = screenp_to_gridp((Vector2){state->input.mouse.pos_px.x, state->input.mouse.pos_px.y},
+                                    state->active_level->tilemap.tile_size);
 
     Rectangle dst = {0};
 
-    u32 start_gridx = gridx;
-    u32 start_gridy = gridy;
+    u32 start_gridx = grid.x;
+    u32 start_gridy = grid.y;
 
     u8 brush_col_tiles = tm->brush.size.x / tm->tile_size;
     u8 brush_row_tiles = tm->brush.size.y / tm->tile_size;
