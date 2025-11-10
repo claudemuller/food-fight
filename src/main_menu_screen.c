@@ -1,4 +1,5 @@
 #include "main_menu_screen.h"
+#include "asset_manager.h"
 #include "gfx.h"
 #include "input.h"
 #include "raylib.h"
@@ -19,20 +20,21 @@ static void quit_fn(void);
 void main_menu_init(GameState* game_state)
 {
     state = game_state;
+    Font* font = assetmgr_get_font("main");
 
     u16 text_height = MAIN_MENU_N_ITEMS * UI_MENU_ITEM_SIZE + UI_HEADER_SIZE;
     u16 starty = GetScreenHeight() * 0.5f - text_height * 0.5f + UI_HEADER_SIZE;
 
-    mm_mitems[n_mm_mitems++] = create_menu_item("Start game", 0.0f, starty, start_fn, ALIGN_CENTRE);
+    mm_mitems[n_mm_mitems++] = create_menu_item("Start game", 0.0f, starty, font, start_fn, ALIGN_CENTRE);
 
     starty += UI_MENU_ITEM_SIZE;
-    mm_mitems[n_mm_mitems++] = create_menu_item("Load Level", 0.0f, starty, load_level_fn, ALIGN_CENTRE);
+    mm_mitems[n_mm_mitems++] = create_menu_item("Load Level", 0.0f, starty, font, load_level_fn, ALIGN_CENTRE);
 
     starty += UI_MENU_ITEM_SIZE;
-    mm_mitems[n_mm_mitems++] = create_menu_item("Build Level", 0.0f, starty, build_level_fn, ALIGN_CENTRE);
+    mm_mitems[n_mm_mitems++] = create_menu_item("Build Level", 0.0f, starty, font, build_level_fn, ALIGN_CENTRE);
 
     starty += UI_MENU_ITEM_SIZE;
-    mm_mitems[n_mm_mitems++] = create_menu_item("Quit", 0.0f, starty, quit_fn, ALIGN_CENTRE);
+    mm_mitems[n_mm_mitems++] = create_menu_item("Quit", 0.0f, starty, font, quit_fn, ALIGN_CENTRE);
 }
 
 void main_menu_update(void)
@@ -53,6 +55,8 @@ void main_menu_update(void)
 
 void main_menu_render(void)
 {
+    Font* font = assetmgr_get_font("main");
+
     BeginDrawing();
     {
         // GLFW shinnanigans
@@ -65,17 +69,27 @@ void main_menu_render(void)
             u16 text_height = n_mm_mitems * UI_MENU_ITEM_SIZE + UI_HEADER_SIZE;
             u16 starty = GetScreenHeight() * 0.5f - text_height * 0.5f;
 
-            i32 header_size = MeasureText("Food Fight", UI_HEADER_SIZE);
-            u16 headerx = GetScreenWidth() * 0.5f - header_size * 0.5f;
-            DrawText("Food Fight", headerx, starty, UI_HEADER_SIZE, PALEBLUE_D);
+            Vector2 header_size = MeasureTextEx(*font, "Food Fight", UI_HEADER_SIZE, 1.0f);
+            u16 headerx = GetScreenWidth() * 0.5f - header_size.x * 0.5f;
+            DrawTextEx(*font, "Food Fight", (Vector2){headerx, starty}, UI_HEADER_SIZE, 1.0f, PALEBLUE_D);
 
             for (size_t i = 0; i < n_mm_mitems; ++i) {
                 Color c = PALEBLUE_D;
                 if (mm_mitems[i].hover) {
                     c = PALEBLUE_DES;
-                    DrawText(">", mm_mitems[i].rec.x - 15.0f, mm_mitems[i].rec.y, mm_mitems[i].rec.height, c);
+                    DrawTextEx(*font,
+                               ">",
+                               (Vector2){mm_mitems[i].rec.x - 15.0f, mm_mitems[i].rec.y},
+                               mm_mitems[i].rec.height,
+                               1.0f,
+                               c);
                 }
-                DrawText(mm_mitems[i].label, mm_mitems[i].rec.x, mm_mitems[i].rec.y, mm_mitems[i].rec.height, c);
+                DrawTextEx(*font,
+                           mm_mitems[i].label,
+                           (Vector2){mm_mitems[i].rec.x, mm_mitems[i].rec.y},
+                           mm_mitems[i].rec.height,
+                           1.0f,
+                           c);
             }
         }
     }

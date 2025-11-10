@@ -1,4 +1,5 @@
 #include "gameover_screen.h"
+#include "asset_manager.h"
 #include "gfx.h"
 #include "input.h"
 #include "raylib.h"
@@ -18,17 +19,18 @@ static void quit_fn(void);
 void game_over_init(GameState* game_state)
 {
     state = game_state;
+    Font* font = assetmgr_get_font("main");
 
     u16 text_height = GAME_OVER_N_ITEMS * UI_MENU_ITEM_SIZE + UI_HEADER_SIZE;
     u16 starty = GetScreenHeight() * 0.5f - text_height * 0.5f + UI_HEADER_SIZE;
 
-    go_mitems[n_go_mitems++] = create_menu_item("Replay Game", 0.0f, starty, replay_fn, ALIGN_CENTRE);
+    go_mitems[n_go_mitems++] = create_menu_item("Replay Game", 0.0f, starty, font, replay_fn, ALIGN_CENTRE);
 
     starty += UI_MENU_ITEM_SIZE;
-    go_mitems[n_go_mitems++] = create_menu_item("Main Menu", 0.0f, starty, main_menu_fn, ALIGN_CENTRE);
+    go_mitems[n_go_mitems++] = create_menu_item("Main Menu", 0.0f, starty, font, main_menu_fn, ALIGN_CENTRE);
 
     starty += UI_MENU_ITEM_SIZE;
-    go_mitems[n_go_mitems++] = create_menu_item("Quit", 0.0f, starty, quit_fn, ALIGN_CENTRE);
+    go_mitems[n_go_mitems++] = create_menu_item("Quit", 0.0f, starty, font, quit_fn, ALIGN_CENTRE);
 }
 
 void game_over_update(void)
@@ -49,6 +51,8 @@ void game_over_update(void)
 
 void game_over_render(void)
 {
+    Font* font = assetmgr_get_font("main");
+
     BeginDrawing();
     {
         // GLFW shinnanigans
@@ -61,17 +65,27 @@ void game_over_render(void)
             u16 text_height = n_go_mitems * UI_MENU_ITEM_SIZE + UI_HEADER_SIZE;
             u16 starty = GetScreenHeight() * 0.5f - text_height * 0.5f;
 
-            i32 header_size = MeasureText("Game Over", UI_HEADER_SIZE);
-            u16 headerx = GetScreenWidth() * 0.5f - header_size * 0.5f;
-            DrawText("Game Over", headerx, starty, UI_HEADER_SIZE, PALEBLUE_D);
+            Vector2 header_size = MeasureTextEx(*font, "Game Over", UI_HEADER_SIZE, 1.0f);
+            u16 headerx = GetScreenWidth() * 0.5f - header_size.x * 0.5f;
+            DrawTextEx(*font, "Game Over", (Vector2){headerx, starty}, UI_HEADER_SIZE, 1.0f, PALEBLUE_D);
 
             for (size_t i = 0; i < n_go_mitems; ++i) {
                 Color c = PALEBLUE_D;
                 if (go_mitems[i].hover) {
                     c = PALEBLUE_DES;
-                    DrawText(">", go_mitems[i].rec.x - 15.0f, go_mitems[i].rec.y, go_mitems[i].rec.height, c);
+                    DrawTextEx(*font,
+                               ">",
+                               (Vector2){go_mitems[i].rec.x - 15.0f, go_mitems[i].rec.y},
+                               go_mitems[i].rec.height,
+                               1.0f,
+                               c);
                 }
-                DrawText(go_mitems[i].label, go_mitems[i].rec.x, go_mitems[i].rec.y, go_mitems[i].rec.height, c);
+                DrawTextEx(*font,
+                           go_mitems[i].label,
+                           (Vector2){go_mitems[i].rec.x, go_mitems[i].rec.y},
+                           go_mitems[i].rec.height,
+                           1.0f,
+                           c);
             }
         }
     }

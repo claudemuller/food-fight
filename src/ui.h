@@ -33,13 +33,13 @@ typedef struct {
 } MenuItem;
 
 static inline MenuItem
-create_menu_item(const char* label, const u16 x, const u16 y, const action_fn fn, const TextAlignment align)
+create_menu_item(const char* label, const u16 x, const u16 y, Font* font, const action_fn fn, const TextAlignment align)
 {
     u16 posx = x;
-    i32 text_w = MeasureText(label, UI_MENU_ITEM_SIZE);
+    Vector2 text_size = MeasureTextEx(*font, label, UI_MENU_ITEM_SIZE, 1.0f);
 
     if (align == ALIGN_CENTRE) {
-        posx = GetScreenWidth() * 0.5f - text_w * 0.5f;
+        posx = GetScreenWidth() * 0.5f - text_size.x * 0.5f;
     }
 
     return (MenuItem){
@@ -48,8 +48,8 @@ create_menu_item(const char* label, const u16 x, const u16 y, const action_fn fn
             {
                 .x = posx,
                 .y = y,
-                .width = text_w,
-                .height = UI_MENU_ITEM_SIZE,
+                .width = text_size.x,
+                .height = text_size.y,
             },
         .fn = fn,
         .align = align,
