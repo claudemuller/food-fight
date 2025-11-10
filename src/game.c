@@ -113,6 +113,9 @@ static void update(void)
     }
 
     if (input_is_key_pressed(&state.input.kb, KB_ESCAPE)) {
+        if (state.state == GAME_STATE_MAIN_MENU) {
+            state.is_running = false;
+        }
         state.state = GAME_STATE_MAIN_MENU;
     }
 

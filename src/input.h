@@ -55,6 +55,9 @@ bool input_is_key_released(Keyboard* kb, KeyboardKeys k);
 bool input_is_mouse_down(Mouse* m, MouseButtons b);
 bool input_is_mouse_pressed(Mouse* m, MouseButtons b);
 bool input_is_mouse_released(Mouse* m, MouseButtons b);
+bool input_gamepad_button_pressed(const i32 id, GamepadButton b);
+bool input_gamepad_button_released(const i32 id, GamepadButton b);
+bool input_gamepad_button_down(const i32 id, GamepadButton b);
 void input_reset(Input* input);
 
 #endif // !INPUT_H_

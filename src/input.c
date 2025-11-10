@@ -56,6 +56,10 @@ void input_process(Input* input)
 
     // Store this state for next frame's prev state
     prev_mouse_down = new_mouse_down;
+
+    // for (size_t i = 0; i < 4; ++i) {
+    //     util_debug("%d. %s", i, GetGamepadName(i));
+    // }
 }
 
 bool input_is_key_down(Keyboard* kb, KeyboardKeys k)
@@ -86,6 +90,22 @@ bool input_is_mouse_pressed(Mouse* m, MouseButtons b)
 bool input_is_mouse_released(Mouse* m, MouseButtons b)
 {
     return (m->released & b) != 0;
+}
+
+// I was lazy 😅
+bool input_gamepad_button_pressed(const i32 id, GamepadButton b)
+{
+    return IsGamepadButtonPressed(id, b);
+}
+
+bool input_gamepad_button_released(const i32 id, GamepadButton b)
+{
+    return IsGamepadButtonReleased(id, b);
+}
+
+bool input_gamepad_button_down(const i32 id, GamepadButton b)
+{
+    return IsGamepadButtonDown(id, b);
 }
 
 void input_reset(Input* input)

@@ -26,16 +26,26 @@ void player_update(float dt)
 {
     Tilemap* tm = &state->active_level->tilemap;
 
-    if (input_is_key_down(&state->input.kb, KB_A)) {
+    if (input_is_key_down(&state->input.kb, KB_A) || input_gamepad_button_down(3, GAMEPAD_BUTTON_LEFT_FACE_LEFT)) {
         player->vel.x = -PLAYER_SPEED;
-    } else if (input_is_key_down(&state->input.kb, KB_D)) {
+    } else if (input_is_key_down(&state->input.kb, KB_D) ||
+               input_gamepad_button_down(3, GAMEPAD_BUTTON_LEFT_FACE_RIGHT)) {
         player->vel.x = PLAYER_SPEED;
     } else {
         player->vel.x = 0.0f;
     }
 
-    if (input_is_key_pressed(&state->input.kb, KB_SPACE)) {
-        player->vel.y -= PLAYER_JUMP_STRENGTH;
+    if (input_is_key_pressed(&state->input.kb, KB_SPACE) ||
+        input_gamepad_button_pressed(3, GAMEPAD_BUTTON_RIGHT_FACE_DOWN)) {
+        if (player->on_ground) {
+            player->vel.y -= PLAYER_JUMP_STRENGTH;
+            player->on_ground = false;
+        }
+    }
+
+    if (input_is_key_pressed(&state->input.kb, KB_F3) ||
+        input_gamepad_button_pressed(3, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)) {
+        // shoot
     }
 
     player->vel.y += GRAVITY * dt;
