@@ -210,7 +210,7 @@ static void render_debug_ui(void)
     Vector2 grid = worldp_to_gridp((Vector2){mpos.x, mpos.y}, tm->tile_size);
 
     DrawTextEx(*font,
-               TextFormat("grid_pos: %d x %d", grid.x, grid.y),
+               TextFormat("grid_pos: %f x %f", grid.x, grid.y),
                (Vector2){
                    .x = renpos.x,
                    .y = renpos.y + 40,

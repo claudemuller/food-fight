@@ -391,6 +391,13 @@ static void update_edit_mode(void)
             }
         }
     }
+
+    // Delete tile
+    if (input_is_mouse_down(&state->input.mouse, MB_RIGHT)) {
+        Vector2 grid = screenp_to_gridp(state->input.mouse.pos_px, tm->tile_size);
+        size_t idx = (size_t)((grid.x * tm->tile_size) + grid.y);
+        tm->tiles[idx].src = (Rectangle){0};
+    }
 }
 
 static void render_edit_mode_grid(void)
