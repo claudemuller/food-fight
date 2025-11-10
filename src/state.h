@@ -32,6 +32,7 @@ typedef struct GameState {
     Camera2D camera;
     Level* active_level;
     bool is_running;
+    bool debug;
 } GameState;
 
 #endif // !STATE_H_

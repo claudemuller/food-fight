@@ -41,6 +41,7 @@ bool game_init(MemoryArena* mem)
         return false;
     }
 
+    state.debug = true;
     state.is_running = true;
 
     return true;
@@ -97,6 +98,9 @@ static void update(void)
     if (input_is_key_pressed(&state.input.kb, KB_F1)) {
         state.state = state.state == GAME_STATE_EDITING ? GAME_STATE_PLAYING : GAME_STATE_EDITING;
     }
+    if (input_is_key_pressed(&state.input.kb, KB_F3)) {
+        state.debug = !state.debug;
+    }
 
     Tilemap* tm = &state.active_level->tilemap;
     f32 map_w = tm->tiles_wide * tm->tile_size;
@@ -151,14 +155,17 @@ static void render(void)
             if (state.state == GAME_STATE_EDITING) {
                 level_render_edit_mode();
             }
-            // brush
         }
         EndMode2D();
 
         // Not affected by camera
         {
-            level_render_edit_mode_ui();
-            render_debug_ui();
+            if (state.state == GAME_STATE_EDITING) {
+                level_render_edit_mode_ui();
+            }
+            if (state.debug) {
+                render_debug_ui();
+            }
         }
     }
     EndDrawing();

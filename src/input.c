@@ -18,6 +18,7 @@ void input_process(Input* input)
     new_kb_down |= IsKeyDown(KEY_SPACE) ? KB_SPACE : 0;
     new_kb_down |= IsKeyDown(KEY_F1) ? KB_F1 : 0;
     new_kb_down |= IsKeyDown(KEY_F2) ? KB_F2 : 0;
+    new_kb_down |= IsKeyDown(KEY_F3) ? KB_F3 : 0;
     new_kb_down |= IsKeyDown(KEY_LEFT_SHIFT) ? KB_LSHFT : 0;
     new_kb_down |= IsKeyDown(KEY_ESCAPE) ? KB_ESCAPE : 0;
 
