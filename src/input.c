@@ -11,10 +11,10 @@ void input_process(Input* input)
     static u32 prev_kb_down = 0;
     u32 new_kb_down = 0;
 
-    new_kb_down |= IsKeyDown(KEY_A) ? KB_A : 0;
-    new_kb_down |= IsKeyDown(KEY_S) ? KB_S : 0;
-    new_kb_down |= IsKeyDown(KEY_W) ? KB_W : 0;
-    new_kb_down |= IsKeyDown(KEY_D) ? KB_D : 0;
+    new_kb_down |= IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT) ? KB_A : 0;
+    new_kb_down |= IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN) ? KB_S : 0;
+    new_kb_down |= IsKeyDown(KEY_W) || IsKeyDown(KEY_UP) ? KB_W : 0;
+    new_kb_down |= IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT) ? KB_D : 0;
     new_kb_down |= IsKeyDown(KEY_SPACE) ? KB_SPACE : 0;
     new_kb_down |= IsKeyDown(KEY_F1) ? KB_F1 : 0;
     new_kb_down |= IsKeyDown(KEY_F2) ? KB_F2 : 0;
