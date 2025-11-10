@@ -409,7 +409,15 @@ static void render_edit_mode_ui(void)
         .width = tm->tile_size * SCALE,
         .height = tm->tile_size * SCALE,
     };
-    DrawTexturePro(*tm->tileset.texture, tm->brush.src, dst, (Vector2){0, 0}, 0.0f, WHITE);
+
+    if (tm->brush.is_set) {
+        DrawTexturePro(*tm->tileset.texture, tm->brush.src, dst, (Vector2){0, 0}, 0.0f, WHITE);
+    } else {
+        DrawRectangleLinesEx(dst, DEBUG_UI_LINE_THICKNESS, PALEBLUE_D);
+    }
+
+    Font* font = assetmgr_get_font("main");
+    DrawTextEx(*font, "Brush: ", (Vector2){dst.x - 80.0f, dst.y + 8}, 22.0f, 1.0f, PALEBLUE_D);
 }
 
 static bool update_edit_mode_tileset(void)
@@ -443,7 +451,6 @@ static bool update_edit_mode_tileset(void)
         tm->brush.src.y = tm->tileset.hovered_tile.y * tm->tileset.tile_size;
         tm->brush.src.width = tm->tileset.tile_size;
         tm->brush.src.height = tm->tileset.tile_size;
-        // TODO: right?
         tm->brush.size.x = tm->tile_size;
         tm->brush.size.y = tm->tile_size;
     }

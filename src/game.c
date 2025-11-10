@@ -30,8 +30,13 @@ bool game_init(MemoryArena* mem)
         return false;
     }
 
-    Font* f = assetmgr_load_font("assets/fonts/FiraCode-Regular.ttf", "main");
-    if (!f) {
+    Font* tf = assetmgr_load_font("assets/fonts/FiraCode-Regular.ttf", "main");
+    if (!tf) {
+        util_error("Failed to start level");
+        return false;
+    }
+    Font* ef = assetmgr_load_font("assets/fonts/FontAwesome.ttf", "emoji");
+    if (!ef) {
         util_error("Failed to start level");
         return false;
     }
