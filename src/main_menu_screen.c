@@ -7,6 +7,7 @@
 #include "ui.h"
 #include "utils.h"
 #include <stddef.h>
+#include <tinyfiledialogs/tinyfiledialogs.h>
 
 static GameState* state;
 static MenuItem mm_mitems[MAIN_MENU_N_ITEMS];
@@ -110,6 +111,22 @@ static void start_fn(void)
 static void load_level_fn(void)
 {
     util_debug("load level");
+    const char* filters[] = {"*.png", "*.jpg", "*.jpeg", "*.bmp"};
+    const char* path = tinyfd_openFileDialog("Open an image",
+                                             "", // start in current dir
+                                             4,
+                                             filters,
+                                             "Image files", // description shown in dialog
+                                             0);            // single selection
+
+    if (path != NULL) {
+        i32 bytes_read = 0;
+        unsigned char* data = LoadFileData(path, &bytes_read);
+        if (!data || bytes_read == 0) {
+            // TODO: error
+        }
+        UnloadFileData(data);
+    }
 }
 
 static void build_level_fn(void)

@@ -1,14 +1,14 @@
 CC = clang
 DBG_BIN = lldb
-# CFLAGS = -D_GNU_SOURCE
 CFLAGS += -std=c11
-CFLAGS += -Wall -pedantic -Wextra -Wmissing-declarations
+CFLAGS += -Wall -pedantic -Wextra -Wmissing-declarations -D_POSIX_C_SOURCE=200809L
 # CFLAGS += -Werror 
 CFLAGS += -L$$HOME/repos/3rd-party/raylib/build
+LIBS = -I./lib
 LDFLAGS = -I$$HOME/repos/3rd-party/raylib/src -lraylib -lm -lpthread -ldl 
 ASANFLAGS = -fsanitize=address -fno-common -fno-omit-frame-pointer
 
-SRC_FILES = ./src/*.c
+SRC_FILES = ./src/*.c ./lib/tinyfiledialogs/tinyfiledialogs.c
 BIN_DIR = ./bin
 BIN = $(BIN_DIR)/foodfight
 

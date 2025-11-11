@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <tinyfiledialogs/tinyfiledialogs.h>
 
 static Level* active_level;
 static GameState* state;
@@ -189,6 +190,21 @@ static void update_edit_mode(void)
         player_reset(&state->active_level->player);
     }
 
+    if (input_is_key_pressed(&state->input.kb, KB_F4)) {
+        // TODO: save level
+        const char* filters[] = {"*.png"};
+        const char* save_path = tinyfd_saveFileDialog("Save image as PNG",
+                                                      "image.png", // default filename
+                                                      1,
+                                                      filters,
+                                                      "PNG image");
+
+        if (save_path != NULL) {
+            if (!SaveFileData(save_path, active_level, sizeof(*active_level))) {
+            }
+        }
+    }
+
     if (input_is_key_pressed(&state->input.kb, KB_LSHFT)) {
         scale_mode_grid_x = grid.x;
         scale_mode_grid_y = grid.y;
@@ -283,6 +299,7 @@ static void render_edit_mode_ui(void)
     if (state->state == GAME_STATE_EDITING) {
         DrawTextEx(*font, "Editing:", (Vector2){10.0f, 10}, UI_HEADER_SIZE_ALT, 1.0f, PALEBLUE_D);
         DrawTextEx(*font, "Reset Player: F2", (Vector2){10.0f, 30}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
+        DrawTextEx(*font, "Save Level: F4", (Vector2){10.0f, 50}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
     }
 }
 

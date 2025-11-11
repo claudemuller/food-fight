@@ -67,6 +67,8 @@ void player_update(float dt)
     for (size_t i = 0; i < n_live_bullets; ++i) {
         Bullet* b = &bullets[live_bullets[i]];
         b->pos.x += BULLET_VELOCITY * b->dir * dt;
+
+        // TODO: bullet collision with blocks and off screen
     }
 
     player->vel.y += GRAVITY * dt;
@@ -77,6 +79,7 @@ void player_update(float dt)
 
     // If player falls beyond map bottom
     if (new_y >= tm->tiles_high * tm->tile_size) {
+        SetGamepadVibration(3, 10.0f, 10.0f, 0.5f);
         state->state = GAME_STATE_GAME_OVER;
     }
 
