@@ -7,7 +7,6 @@
 #include "state.h"
 #include "ui.h"
 #include "utils.h"
-#include <SDL3/SDL_render.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
