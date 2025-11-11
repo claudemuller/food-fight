@@ -47,7 +47,7 @@ bool game_init(MemoryArena* mem)
     main_menu_init(&state);
     game_over_init(&state);
 
-    state.debug = true;
+    state.debug = false;
     state.is_running = true;
 
     return true;
@@ -69,6 +69,8 @@ void game_run(void)
         } break;
 
         case GAME_STATE_EDITING:
+            // TODO: should have its own update/renders :/
+
         case GAME_STATE_PLAYING: {
             render();
             update();
@@ -80,6 +82,8 @@ void game_run(void)
         } break;
         }
     }
+
+    arena_free(&level_mem);
 }
 
 void game_destroy(void)

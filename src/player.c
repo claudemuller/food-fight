@@ -1,8 +1,14 @@
 #include "player.h"
+#include "gfx.h"
 #include "level.h"
+#include "raylib.h"
 
 static GameState* state;
 static Player* player;
+static Bullet bullets[MAX_BULLETS];
+static size_t n_bullets;
+static size_t live_bullets[MAX_BULLETS];
+static size_t n_live_bullets;
 
 static inline void get_overlapping_tiles(Rectangle r, size_t* out_first, size_t* out_last);
 
@@ -26,16 +32,21 @@ void player_update(float dt)
 {
     Tilemap* tm = &state->active_level->tilemap;
 
+    // TODO: should be reset for animation/movement frames but not for bullet initial dir
+    // player->dir = DIRECTION_NONE;
+
     if (input_is_key_down(&state->input.kb, KB_A) || input_gamepad_button_down(3, GAMEPAD_BUTTON_LEFT_FACE_LEFT)) {
         player->vel.x = -PLAYER_SPEED;
+        player->dir = DIRECTION_LEFT;
     } else if (input_is_key_down(&state->input.kb, KB_D) ||
                input_gamepad_button_down(3, GAMEPAD_BUTTON_LEFT_FACE_RIGHT)) {
         player->vel.x = PLAYER_SPEED;
+        player->dir = DIRECTION_RIGHT;
     } else {
         player->vel.x = 0.0f;
     }
 
-    if (input_is_key_pressed(&state->input.kb, KB_SPACE) ||
+    if (input_is_key_pressed(&state->input.kb, KB_W) ||
         input_gamepad_button_pressed(3, GAMEPAD_BUTTON_RIGHT_FACE_DOWN)) {
         if (player->on_ground) {
             player->vel.y -= PLAYER_JUMP_STRENGTH;
@@ -43,9 +54,19 @@ void player_update(float dt)
         }
     }
 
-    if (input_is_key_pressed(&state->input.kb, KB_F3) ||
+    if (input_is_key_pressed(&state->input.kb, KB_SPACE) ||
         input_gamepad_button_pressed(3, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)) {
-        // shoot
+        bullets[n_bullets] = (Bullet){
+            .pos = player->pos,
+            .dir = player->dir,
+        };
+        live_bullets[n_live_bullets++] = n_bullets;
+        n_bullets++;
+    }
+
+    for (size_t i = 0; i < n_live_bullets; ++i) {
+        Bullet* b = &bullets[live_bullets[i]];
+        b->pos.x += BULLET_VELOCITY * b->dir * dt;
     }
 
     player->vel.y += GRAVITY * dt;
@@ -54,6 +75,7 @@ void player_update(float dt)
     f32 new_x = player->pos.x + player->vel.x * dt;
     f32 new_y = player->pos.y + player->vel.y * dt;
 
+    // If player falls beyond map bottom
     if (new_y >= tm->tiles_high * tm->tile_size) {
         state->state = GAME_STATE_GAME_OVER;
     }
@@ -152,6 +174,7 @@ void player_reset(Player* player)
                 .x = 18,
                 .y = 18,
             },
+        .dir = DIRECTION_RIGHT,
     };
 }
 
@@ -183,19 +206,18 @@ void player_render(void)
     size_t first, last;
     get_overlapping_tiles(horz_box, &first, &last);
 
-    // for (size_t i = first; i <= last; ++i) {
-    //     u32 x = i % MAP_COL_TILES;
-    //     u32 y = i / MAP_COL_TILES;
-    //
-    //     DrawRectangleRec(
-    //         (Rectangle){
-    //             .x = x * MAP_TILE_SIZE,
-    //             .y = y * MAP_TILE_SIZE,
-    //             .width = MAP_TILE_SIZE,
-    //             .height = MAP_TILE_SIZE,
-    //         },
-    //         RED);
-    // }
+    for (size_t i = 0; i < n_live_bullets; ++i) {
+        Bullet b = bullets[live_bullets[i]];
+        u16 y = b.pos.y + player->size.y * 0.5f;
+
+        DrawLineEx((Vector2){b.pos.x, y},
+                   (Vector2){
+                       b.pos.x + 5.0f,
+                       y,
+                   },
+                   5.0f,
+                   PALEBLUE_D);
+    }
 }
 
 // ------------------------------------------------------------------------------------------------
