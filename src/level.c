@@ -272,6 +272,57 @@ static void render_edit_mode_grid(void)
             PALEBLUE_DES);
     }
 }
+static bool DrawImageButton(const Vector2 pos, const f32 size, const char* tex_id, const char* hint)
+{
+    Texture2D* tex = assetmgr_get_texture(tex_id);
+    if (!tex) {
+        tex = assetmgr_load_texture(tex_id);
+        if (!tex) {
+            util_error("Failed to load button texture");
+            return false;
+        }
+    }
+
+    Rectangle rec = {
+        .x = pos.x,
+        .y = pos.y,
+        .width = tex->width,
+        .height = tex->height,
+    };
+
+    if (CheckCollisionPointRec(GetMousePosition(), rec)) {
+        if (input_is_mouse_pressed(&state->input.mouse, MB_LEFT)) {
+            return true;
+        }
+    }
+
+    DrawTextureEx(*tex, pos, 0.0f, tex->width / size, WHITE);
+
+    return false;
+}
+
+static bool DrawButton(const Vector2 pos, const Vector2 size, const Color bgcolor, const Color hover_color)
+{
+    Rectangle btn_rec = {
+        .x = pos.x,
+        .y = pos.y,
+        .width = size.x,
+        .height = size.y,
+    };
+    Color c = bgcolor;
+
+    if (CheckCollisionPointRec(GetMousePosition(), btn_rec)) {
+        c = hover_color;
+
+        if (input_is_mouse_pressed(&state->input.mouse, MB_LEFT)) {
+            return true;
+        }
+    }
+
+    DrawRectangleRec(btn_rec, c);
+
+    return false;
+}
 
 static void render_edit_mode_ui(void)
 {
@@ -300,6 +351,13 @@ static void render_edit_mode_ui(void)
         DrawTextEx(*font, "Editing:", (Vector2){10.0f, 10}, UI_HEADER_SIZE_ALT, 1.0f, PALEBLUE_D);
         DrawTextEx(*font, "Reset Player: F2", (Vector2){10.0f, 30}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
         DrawTextEx(*font, "Save Level: F4", (Vector2){10.0f, 50}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
+    }
+
+    if (DrawButton((Vector2){10.0f, 60.0f}, (Vector2){50.0f, 20.0f}, PALEBLUE_D, PALEBLUE_DES)) {
+        util_debug("button pressed");
+    }
+    if (DrawImageButton((Vector2){10.0f, 60.0f}, 64.0f, "assets/textures/floppy-disk-solid-full.png", "Save level")) {
+        util_debug("button pressed");
     }
 }
 
