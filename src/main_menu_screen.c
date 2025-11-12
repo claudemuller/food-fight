@@ -110,34 +110,24 @@ static void start_fn(void)
 
 static void load_level_fn(void)
 {
-    util_debug("load level");
+    nfdu8char_t* path;
+    nfdu8filteritem_t filters[2] = {{"Level data", "bin"}};
 
-    nfdu8char_t* outPath;
-    nfdu8filteritem_t filters[2] = {{"Source code", "c,cpp,cc"}, {"Headers", "h,hpp"}};
-    nfdopendialogu8args_t args = {0};
-    args.filterList = filters;
-    args.filterCount = 2;
+    nfdresult_t res = NFD_OpenDialog(&path, filters, 1, "data/");
+    if (res == NFD_OKAY) {
+        i32 bytes_read = 0;
+        unsigned char* data = LoadFileData(path, &bytes_read);
+        if (!data || bytes_read == 0) {
+            util_error("Failed to load file: %s", path);
+        } else {
+            message_box("Success!", "Level data loaded successfully.");
+        }
 
-    nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
-
-    if (result == NFD_OKAY) {
-        puts("Success!");
-        puts(outPath);
-        NFD_FreePathU8(outPath);
-    } else if (result == NFD_CANCEL) {
-        puts("User pressed cancel.");
+        NFD_FreePathU8(path);
+    } else if (res == NFD_CANCEL) {
     } else {
-        printf("Error: %s\n", NFD_GetError());
+        util_error("Failed to open file: %s", NFD_GetError());
     }
-
-    // if (path != NULL) {
-    //     i32 bytes_read = 0;
-    //     unsigned char* data = LoadFileData(path, &bytes_read);
-    //     if (!data || bytes_read == 0) {
-    //         // TODO: error
-    //     }
-    //     UnloadFileData(data);
-    // }
 }
 
 static void build_level_fn(void)

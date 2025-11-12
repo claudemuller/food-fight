@@ -8,6 +8,7 @@
 #include "state.h"
 #include "ui.h"
 #include "utils.h"
+#include <gtk-3.0/gtk/gtk.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -190,25 +191,21 @@ static void update_edit_mode(void)
     }
 
     if (input_is_key_pressed(&state->input.kb, KB_F4)) {
-        // TODO: save level
-        nfdu8char_t* outPath;
-        nfdu8filteritem_t filters[2] = {{"Source code", "c,cpp,cc"}, {"Headers", "h,hpp"}};
-        nfdopendialogu8args_t args = {0};
-        args.filterList = filters;
-        args.filterCount = 2;
+        nfdchar_t* path;
+        nfdfilteritem_t filters[2] = {{"Level data", "bin"}};
 
-        nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
+        nfdresult_t res = NFD_SaveDialog(&path, filters, 1, NULL, "data/");
+        if (res == NFD_OKAY) {
+            if (!SaveFileData(path, active_level, sizeof(*active_level))) {
+                util_error("Failed to save file: %s", path);
+            } else {
+                message_box("Success!", "Level data saved successfully.");
+            }
 
-        if (result == NFD_OKAY) {
-            puts("Success!");
-            puts(outPath);
-            NFD_FreePathU8(outPath);
-            // if (!SaveFileData(save_path, active_level, sizeof(*active_level))) {
-            // }
-        } else if (result == NFD_CANCEL) {
-            puts("User pressed cancel.");
+            NFD_FreePath(path);
+        } else if (res == NFD_CANCEL) {
         } else {
-            printf("Error: %s\n", NFD_GetError());
+            util_error("Failed to save file: %s", NFD_GetError());
         }
     }
 
