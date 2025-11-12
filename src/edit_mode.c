@@ -22,10 +22,13 @@ void edit_mode_init(GameState* game_state)
 
 void edit_mode_update(void)
 {
-    level_process_shared_events();
-
     if (input_is_key_pressed(&state->input.kb, KB_ESCAPE)) {
         state->state = GAME_STATE_MAIN_MENU;
+    } else if (input_is_key_pressed(&state->input.kb, KB_F1)) {
+        state->state = GAME_STATE_PLAYING;
+    }
+    if (level_process_shared_events()) {
+        return;
     }
 
     if (update_edit_mode_tileset()) {

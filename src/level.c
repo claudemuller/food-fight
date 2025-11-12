@@ -80,14 +80,12 @@ void level_render(void)
     player_render();
 }
 
-void level_process_shared_events(void)
+bool level_process_shared_events(void)
 {
-    if (input_is_key_pressed(&state->input.kb, KB_F1)) {
-        state->state = state->state == GAME_STATE_EDITING ? GAME_STATE_PLAYING : GAME_STATE_EDITING;
-    }
     if (input_is_key_pressed(&state->input.kb, KB_F3)) {
         state->debug = !state->debug;
     }
+    return false;
 }
 
 // Converts a 2D screen position (spos) to a 2D world position.

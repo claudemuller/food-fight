@@ -41,10 +41,11 @@ void main_menu_init(GameState* game_state)
 
 void main_menu_update(void)
 {
-    level_process_shared_events();
-
     if (input_is_key_pressed(&state->input.kb, KB_ESCAPE)) {
         state->is_running = false;
+    }
+    if (level_process_shared_events()) {
+        return;
     }
 
     for (size_t i = 0; i < n_mm_mitems; ++i) {

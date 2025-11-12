@@ -130,10 +130,13 @@ static void update(void)
         return;
     }
 
-    level_process_shared_events();
-
     if (input_is_key_pressed(&state.input.kb, KB_ESCAPE)) {
-        state.is_running = false;
+        state.state = GAME_STATE_MAIN_MENU;
+    } else if (IsKeyPressed(KEY_F1)) {
+        state.state = GAME_STATE_EDITING;
+    }
+    if (level_process_shared_events()) {
+        return;
     }
 
     Tilemap* tm = &state.active_level->tilemap;

@@ -66,7 +66,7 @@ bool level_init(MemoryArena* level_mem, GameState* state);
 void level_update(void);
 void level_render(void);
 
-void level_process_shared_events(void);
+bool level_process_shared_events(void);
 
 Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w, const f32 screen_h);
 Vector2 screenp_to_gridp(const Vector2 p, const u8 tile_size);
