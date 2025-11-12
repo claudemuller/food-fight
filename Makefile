@@ -1,14 +1,18 @@
 CC = clang
 DBG_BIN = lldb
 CFLAGS += -std=c11
-CFLAGS += -Wall -pedantic -Wextra -Wmissing-declarations -D_POSIX_C_SOURCE=200809L
+CFLAGS += -Wall -pedantic -Wextra -Wmissing-declarations
 # CFLAGS += -Werror 
-CFLAGS += -L$$HOME/repos/3rd-party/raylib/build
 LIBS = -I./lib
-LDFLAGS = -I$$HOME/repos/3rd-party/raylib/src -lraylib -lm -lpthread -ldl 
+CFLAGS = -I$$HOME/repos/3rd-party/nativefiledialog-extended/src/include  
+CFLAGS += -I$$HOME/repos/3rd-party/raylib/src 
+CFLAGS += $(shell pkg-config --cflags gtk+-3.0)
+LDFLAGS += -L$$HOME/repos/3rd-party/raylib/build
+LDFLAGS += -L$$HOME/repos/3rd-party/nativefiledialog-extended/build/src
+LDFLAGS += $(shell pkg-config --libs gtk+-3.0) -lraylib -lm -lpthread -ldl -lnfd
 ASANFLAGS = -fsanitize=address -fno-common -fno-omit-frame-pointer
 
-SRC_FILES = ./src/*.c ./lib/tinyfiledialogs/tinyfiledialogs.c
+SRC_FILES = ./src/*.c
 BIN_DIR = ./bin
 BIN = $(BIN_DIR)/foodfight
 

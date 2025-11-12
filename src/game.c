@@ -9,6 +9,7 @@
 #include "state.h"
 #include "ui.h"
 #include "utils.h"
+#include <nfd.h>
 #include <raylib.h>
 
 static MemoryArena* game_mem;
@@ -27,6 +28,8 @@ bool game_init(MemoryArena* mem)
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Food Fight!");
     SetTargetFPS(60);
     SetExitKey(0);
+
+    NFD_Init();
 
     if (!assetmgr_init(game_mem)) {
         util_error("Failed to init asset manager");
@@ -89,6 +92,7 @@ void game_run(void)
 void game_destroy(void)
 {
     assetmgr_destroy();
+    NFD_Quit();
     CloseWindow();
 }
 

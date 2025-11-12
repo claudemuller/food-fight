@@ -6,8 +6,8 @@
 #include "state.h"
 #include "ui.h"
 #include "utils.h"
+#include <nfd.h>
 #include <stddef.h>
-#include <tinyfiledialogs/tinyfiledialogs.h>
 
 static GameState* state;
 static MenuItem mm_mitems[MAIN_MENU_N_ITEMS];
@@ -111,22 +111,33 @@ static void start_fn(void)
 static void load_level_fn(void)
 {
     util_debug("load level");
-    const char* filters[] = {"*.png", "*.jpg", "*.jpeg", "*.bmp"};
-    const char* path = tinyfd_openFileDialog("Open an image",
-                                             "", // start in current dir
-                                             4,
-                                             filters,
-                                             "Image files", // description shown in dialog
-                                             0);            // single selection
 
-    if (path != NULL) {
-        i32 bytes_read = 0;
-        unsigned char* data = LoadFileData(path, &bytes_read);
-        if (!data || bytes_read == 0) {
-            // TODO: error
-        }
-        UnloadFileData(data);
+    nfdu8char_t* outPath;
+    nfdu8filteritem_t filters[2] = {{"Source code", "c,cpp,cc"}, {"Headers", "h,hpp"}};
+    nfdopendialogu8args_t args = {0};
+    args.filterList = filters;
+    args.filterCount = 2;
+
+    nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
+
+    if (result == NFD_OKAY) {
+        puts("Success!");
+        puts(outPath);
+        NFD_FreePathU8(outPath);
+    } else if (result == NFD_CANCEL) {
+        puts("User pressed cancel.");
+    } else {
+        printf("Error: %s\n", NFD_GetError());
     }
+
+    // if (path != NULL) {
+    //     i32 bytes_read = 0;
+    //     unsigned char* data = LoadFileData(path, &bytes_read);
+    //     if (!data || bytes_read == 0) {
+    //         // TODO: error
+    //     }
+    //     UnloadFileData(data);
+    // }
 }
 
 static void build_level_fn(void)

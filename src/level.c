@@ -3,6 +3,7 @@
 #include "asset_manager.h"
 #include "gfx.h"
 #include "input.h"
+#include "nfd.h"
 #include "raylib.h"
 #include "state.h"
 #include "ui.h"
@@ -10,7 +11,6 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <tinyfiledialogs/tinyfiledialogs.h>
 
 static Level* active_level;
 static GameState* state;
@@ -191,16 +191,24 @@ static void update_edit_mode(void)
 
     if (input_is_key_pressed(&state->input.kb, KB_F4)) {
         // TODO: save level
-        const char* filters[] = {"*.png"};
-        const char* save_path = tinyfd_saveFileDialog("Save image as PNG",
-                                                      "image.png", // default filename
-                                                      1,
-                                                      filters,
-                                                      "PNG image");
+        nfdu8char_t* outPath;
+        nfdu8filteritem_t filters[2] = {{"Source code", "c,cpp,cc"}, {"Headers", "h,hpp"}};
+        nfdopendialogu8args_t args = {0};
+        args.filterList = filters;
+        args.filterCount = 2;
 
-        if (save_path != NULL) {
-            if (!SaveFileData(save_path, active_level, sizeof(*active_level))) {
-            }
+        nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
+
+        if (result == NFD_OKAY) {
+            puts("Success!");
+            puts(outPath);
+            NFD_FreePathU8(outPath);
+            // if (!SaveFileData(save_path, active_level, sizeof(*active_level))) {
+            // }
+        } else if (result == NFD_CANCEL) {
+            puts("User pressed cancel.");
+        } else {
+            printf("Error: %s\n", NFD_GetError());
         }
     }
 
