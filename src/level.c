@@ -79,38 +79,72 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
 
 void level_update(void)
 {
-    // Update editing mode UI
-    if (state->state == GAME_STATE_EDITING) {
-        if (update_edit_mode_tileset()) return;
-
-        update_edit_mode();
-
-        return;
-    }
-
     f32 dt = GetFrameTime();
-
     player_update(dt);
 }
 
 void level_render(void)
 {
     render_bg();
-
-    // Render positioning grid
-    if (state->state == GAME_STATE_EDITING) {
-        render_edit_mode_grid();
-    }
-
     render_map();
     player_render();
 }
 
+void level_process_shared_events(void)
+{
+    if (input_is_key_pressed(&state->input.kb, KB_F1)) {
+        state->state = state->state == GAME_STATE_EDITING ? GAME_STATE_PLAYING : GAME_STATE_EDITING;
+    }
+    if (input_is_key_pressed(&state->input.kb, KB_F3)) {
+        state->debug = !state->debug;
+    }
+}
+
+void level_update_edit_mode(void)
+{
+    level_process_shared_events();
+
+    if (input_is_key_pressed(&state->input.kb, KB_ESCAPE)) {
+        state->state = GAME_STATE_MAIN_MENU;
+    }
+
+    if (update_edit_mode_tileset()) {
+        return;
+    }
+
+    update_edit_mode();
+}
+
 void level_render_edit_mode(void)
 {
-    if (!state->active_level->tilemap.tileset.active) {
-        render_edit_mode_brush();
+    BeginDrawing();
+    {
+        // GLFW shinnanigans
+        input_process(&state->input);
+
+        ClearBackground(PALEBLUE);
+
+        BeginMode2D(state->camera);
+        {
+            level_render();
+            render_edit_mode_grid();
+
+            if (!state->active_level->tilemap.tileset.active) {
+                render_edit_mode_brush();
+            }
+        }
+        EndMode2D();
+
+        // Not affected by camera
+        {
+            level_render_edit_mode_ui();
+
+            if (state->debug) {
+                render_debug_ui(state);
+            }
+        }
     }
+    EndDrawing();
 }
 
 void level_render_edit_mode_ui(void)

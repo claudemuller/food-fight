@@ -19,7 +19,6 @@ static GameState state;
 static bool start_new(MemoryArena* level_mem);
 static void update(void);
 static void render(void);
-static void render_debug_ui(void);
 
 bool game_init(MemoryArena* mem)
 {
@@ -29,7 +28,10 @@ bool game_init(MemoryArena* mem)
     SetTargetFPS(60);
     SetExitKey(0);
 
-    NFD_Init();
+    if (NFD_Init() == NFD_ERROR) {
+        util_error("Faild to init nfd: %s", NFD_GetError());
+        return false;
+    }
 
     if (!assetmgr_init(game_mem)) {
         util_error("Failed to init asset manager");
@@ -71,8 +73,10 @@ void game_run(void)
             main_menu_update();
         } break;
 
-        case GAME_STATE_EDITING:
-            // TODO: should have its own update/renders :/
+        case GAME_STATE_EDITING: {
+            level_render_edit_mode();
+            level_update_edit_mode();
+        } break;
 
         case GAME_STATE_PLAYING: {
             render();
@@ -124,15 +128,10 @@ static void update(void)
         return;
     }
 
-    if (input_is_key_pressed(&state.input.kb, KB_ESCAPE)) {
-        state.state = GAME_STATE_MAIN_MENU;
-    }
+    level_process_shared_events();
 
-    if (input_is_key_pressed(&state.input.kb, KB_F1)) {
-        state.state = state.state == GAME_STATE_EDITING ? GAME_STATE_PLAYING : GAME_STATE_EDITING;
-    }
-    if (input_is_key_pressed(&state.input.kb, KB_F3)) {
-        state.debug = !state.debug;
+    if (input_is_key_pressed(&state.input.kb, KB_ESCAPE)) {
+        state.is_running = false;
     }
 
     Tilemap* tm = &state.active_level->tilemap;
@@ -185,77 +184,21 @@ static void render(void)
         {
             level_render();
 
-            if (state.state == GAME_STATE_EDITING) {
-                level_render_edit_mode();
-            }
+            // if (state.state == GAME_STATE_EDITING) {
+            //     level_render_edit_mode();
+            // }
         }
         EndMode2D();
 
         // Not affected by camera
         {
-            if (state.state == GAME_STATE_EDITING) {
-                level_render_edit_mode_ui();
-            }
+            // if (state.state == GAME_STATE_EDITING) {
+            //     level_render_edit_mode_ui();
+            // }
             if (state.debug) {
-                render_debug_ui();
+                render_debug_ui(&state);
             }
         }
     }
     EndDrawing();
-}
-
-static void render_debug_ui(void)
-{
-    Tilemap* tm = &state.active_level->tilemap;
-    u32 map_w = tm->tiles_wide * tm->tile_size;
-    Font* font = assetmgr_get_font("main");
-
-    DrawTextEx(*font,
-               TextFormat("Zoom: x%.2f", state.camera.zoom),
-               (Vector2){GetScreenWidth() - 150, 10},
-               UI_DEBUG_FONT_SIZE,
-               1.0f,
-               PALEBLUE_D);
-    DrawTextEx(*font,
-               TextFormat("STATE: %s", state.state == GAME_STATE_PLAYING ? "playing" : "editing"),
-               (Vector2){GetScreenWidth() - 150, 25},
-               UI_DEBUG_FONT_SIZE,
-               1.0f,
-               PALEBLUE_D);
-
-    Vector2 mpos = GetMousePosition();
-
-    Vector2 renpos = mpos;
-    if (renpos.x > GetScreenWidth() - 255) {
-        renpos.x -= 280;
-    }
-    renpos.y = mpos.y - 55;
-    if (renpos.y <= 5) {
-        renpos.y += 85;
-    }
-
-    DrawTextEx(*font, TextFormat("screen_pos: %.2f x %.2f", mpos.x, mpos.y), renpos, 18, 1.0f, PALEBLUE_D);
-
-    Vector2 wpos = screenp_to_worldp(mpos, &state.camera, GetScreenWidth(), GetScreenHeight());
-    DrawTextEx(*font,
-               TextFormat("world_pos: %.2f x %.2f", wpos.x, wpos.y),
-               (Vector2){
-                   .x = renpos.x,
-                   .y = renpos.y + 20,
-               },
-               UI_TEXT_SIZE,
-               1.0f,
-               PALEBLUE_D);
-
-    Vector2 grid = worldp_to_gridp((Vector2){mpos.x, mpos.y}, tm->tile_size);
-
-    DrawTextEx(*font,
-               TextFormat("grid_pos: %f x %f", grid.x, grid.y),
-               (Vector2){
-                   .x = renpos.x,
-                   .y = renpos.y + 40,
-               },
-               UI_TEXT_SIZE,
-               1.0f,
-               PALEBLUE_D);
 }

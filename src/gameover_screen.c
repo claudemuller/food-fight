@@ -2,6 +2,7 @@
 #include "asset_manager.h"
 #include "gfx.h"
 #include "input.h"
+#include "level.h"
 #include "raylib.h"
 #include "state.h"
 #include "ui.h"
@@ -35,6 +36,12 @@ void game_over_init(GameState* game_state)
 
 void game_over_update(void)
 {
+    level_process_shared_events();
+
+    if (input_is_key_pressed(&state->input.kb, KB_ESCAPE)) {
+        state->is_running = false;
+    }
+
     for (size_t i = 0; i < n_go_mitems; ++i) {
         go_mitems[i].hover = false;
         if (CheckCollisionPointRec(GetMousePosition(), go_mitems[i].rec)) {

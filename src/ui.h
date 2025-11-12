@@ -2,6 +2,7 @@
 #define UI_H_
 
 #include "raylib.h"
+#include "state.h"
 #include "utils.h"
 
 #define UI_HEADER_SIZE 40.0f
@@ -31,6 +32,8 @@ typedef struct {
     TextAlignment align;
     bool hover;
 } MenuItem;
+
+void render_debug_ui(GameState* state);
 
 static inline MenuItem
 create_menu_item(const char* label, const u16 x, const u16 y, Font* font, const action_fn fn, const TextAlignment align)

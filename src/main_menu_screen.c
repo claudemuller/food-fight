@@ -2,6 +2,7 @@
 #include "asset_manager.h"
 #include "gfx.h"
 #include "input.h"
+#include "level.h"
 #include "raylib.h"
 #include "state.h"
 #include "ui.h"
@@ -40,6 +41,8 @@ void main_menu_init(GameState* game_state)
 
 void main_menu_update(void)
 {
+    level_process_shared_events();
+
     if (input_is_key_pressed(&state->input.kb, KB_ESCAPE)) {
         state->is_running = false;
     }
