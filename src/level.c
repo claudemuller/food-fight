@@ -5,7 +5,6 @@
 #include "raylib.h"
 #include "state.h"
 #include "utils.h"
-#include <gtk-3.0/gtk/gtk.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>

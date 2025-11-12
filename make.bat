@@ -4,7 +4,7 @@ clang ^
     --sysroot="C:/msys64/mingw64" ^
     -I"C:\lib\raylib-5.5-mingw_w64\include" ^
     -I"lib" ^
-    src\*.c lib\tinyfiledialogs\tinyfiledialogs.c ^
+    src\*.c ^
     -o bin\foodfight.exe ^
     -L"C:\lib\raylib-5.5-mingw_w64\lib" ^
     -lraylib -lopengl32 -lgdi32 -lwinmm
