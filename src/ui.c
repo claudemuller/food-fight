@@ -2,6 +2,7 @@
 #include "asset_manager.h"
 #include "gfx.h"
 #include "level.h"
+#include "raylib.h"
 
 void render_debug_ui(GameState* state)
 {
@@ -57,4 +58,56 @@ void render_debug_ui(GameState* state)
                UI_TEXT_SIZE,
                1.0f,
                PALEBLUE_D);
+}
+
+bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id, const char* hint)
+{
+    Texture2D* tex = assetmgr_get_texture(tex_id);
+    if (!tex) {
+        tex = assetmgr_load_texture(tex_id);
+        if (!tex) {
+            util_error("Failed to load button texture");
+            return false;
+        }
+    }
+
+    Rectangle rec = {
+        .x = pos.x,
+        .y = pos.y,
+        .width = tex->width,
+        .height = tex->height,
+    };
+
+    if (CheckCollisionPointRec(GetMousePosition(), rec)) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            return true;
+        }
+    }
+
+    DrawTextureEx(*tex, pos, 0.0f, tex->width / size, WHITE);
+
+    return false;
+}
+
+bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, const Color hover_color)
+{
+    Rectangle btn_rec = {
+        .x = pos.x,
+        .y = pos.y,
+        .width = size.x,
+        .height = size.y,
+    };
+    Color c = bgcolor;
+
+    if (CheckCollisionPointRec(GetMousePosition(), btn_rec)) {
+        c = hover_color;
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            return true;
+        }
+    }
+
+    DrawRectangleRec(btn_rec, c);
+
+    return false;
 }

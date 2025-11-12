@@ -68,10 +68,6 @@ void level_render(void);
 
 void level_process_shared_events(void);
 
-void level_update_edit_mode(void);
-void level_render_edit_mode(void);
-void level_render_edit_mode_ui(void);
-
 Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w, const f32 screen_h);
 Vector2 screenp_to_gridp(const Vector2 p, const u8 tile_size);
 Vector2 worldp_to_gridp(const Vector2 p, const u8 tile_size);

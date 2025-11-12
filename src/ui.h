@@ -34,6 +34,8 @@ typedef struct {
 } MenuItem;
 
 void render_debug_ui(GameState* state);
+bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id, const char* hint);
+bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, const Color hover_color);
 
 static inline MenuItem
 create_menu_item(const char* label, const u16 x, const u16 y, Font* font, const action_fn fn, const TextAlignment align)

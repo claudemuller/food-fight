@@ -1,6 +1,7 @@
 #include "game.h"
 #include "arena.h"
 #include "asset_manager.h"
+#include "edit_mode.h"
 #include "gameover_screen.h"
 #include "gfx.h"
 #include "input.h"
@@ -49,6 +50,7 @@ bool game_init(MemoryArena* mem)
         return false;
     }
 
+    edit_mode_init(&state);
     main_menu_init(&state);
     game_over_init(&state);
 
@@ -74,8 +76,8 @@ void game_run(void)
         } break;
 
         case GAME_STATE_EDITING: {
-            level_render_edit_mode();
-            level_update_edit_mode();
+            edit_mode_update();
+            edit_mode_render();
         } break;
 
         case GAME_STATE_PLAYING: {
