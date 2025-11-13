@@ -244,23 +244,19 @@ static void render_edit_mode_ui(void)
 
 static bool update_edit_mode_tileset(void)
 {
-    if (ui_get_hovered()) {
-        return false;
-    }
-
     Tilemap* tm = &state->active_level->tilemap;
     Tileset* ts = &tm->tileset;
     ts->active = false;
 
-    ui_set_hovered(false);
-    if (!CheckCollisionPointRec(state->input.mouse.pos_px,
-                                (Rectangle){
-                                    .x = ts->pos.x * SCALE,
-                                    .y = ts->pos.y * SCALE,
-                                    .width = ts->size.x * SCALE,
-                                    .height = ts->size.y * SCALE,
-                                })) {
-        ui_set_hovered(true);
+    // ui_set_hovered(false);
+    if (!ui_is_hovering(state->input.mouse.pos_px,
+                        (Rectangle){
+                            .x = ts->pos.x * SCALE,
+                            .y = ts->pos.y * SCALE,
+                            .width = ts->size.x * SCALE,
+                            .height = ts->size.y * SCALE,
+                        })) {
+        // ui_set_hovered(true);
         return false;
     }
 

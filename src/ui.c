@@ -6,8 +6,6 @@
 
 static bool ui_hovered;
 
-static bool is_hovering(const Vector2 p, Rectangle r);
-
 bool ui_get_hovered(void)
 {
     return ui_hovered;
@@ -16,6 +14,14 @@ bool ui_get_hovered(void)
 void ui_set_hovered(const bool hovered)
 {
     ui_hovered = hovered;
+}
+
+bool ui_is_hovering(const Vector2 p, Rectangle r)
+{
+    if (CheckCollisionPointRec(p, r)) {
+        return ui_hovered = true;
+    }
+    return ui_hovered = false;
 }
 
 void render_debug_ui(GameState* state)
@@ -98,7 +104,7 @@ bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id,
         .height = size,
     };
 
-    if (is_hovering(GetMousePosition(), dst)) {
+    if (ui_is_hovering(GetMousePosition(), dst)) {
         f32 txt_len = MeasureText(hint, UI_HINT_SIZE);
         f32 x = pos.x + (size * 0.5f) - (txt_len * 0.5f);
         f32 y = pos.y + size + 10.0f;
@@ -129,7 +135,7 @@ bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, 
     };
     Color c = bgcolor;
 
-    if (is_hovering(GetMousePosition(), btn_rec)) {
+    if (ui_is_hovering(GetMousePosition(), btn_rec)) {
         c = hover_color;
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -143,13 +149,3 @@ bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, 
 }
 
 // ------------------------------------------------------------------------------------------------
-
-static bool is_hovering(const Vector2 p, Rectangle r)
-{
-    if (CheckCollisionPointRec(p, r)) {
-        ui_hovered = true;
-        return true;
-    }
-    ui_hovered = false;
-    return false;
-}
