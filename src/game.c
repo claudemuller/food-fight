@@ -132,8 +132,11 @@ static void update(void)
 
     if (input_is_key_pressed(&state.input.kb, KB_ESCAPE)) {
         state.state = GAME_STATE_MAIN_MENU;
-    } else if (IsKeyPressed(KEY_F1)) {
+    }
+    if (input_is_key_pressed(&state.input.kb, KB_F1)) {
         state.state = GAME_STATE_EDITING;
+        // Fixes weird bug :/
+        input_reset(&state.input);
     }
     if (level_process_shared_events()) {
         return;

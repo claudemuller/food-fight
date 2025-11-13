@@ -1,8 +1,10 @@
 #include "edit_mode.h"
 #include "asset_manager.h"
 #include "gfx.h"
+#include "input.h"
 #include "level.h"
 #include "nfd.h"
+#include "raylib.h"
 #include "ui.h"
 #include <stdbool.h>
 
@@ -24,7 +26,8 @@ void edit_mode_update(void)
 {
     if (input_is_key_pressed(&state->input.kb, KB_ESCAPE)) {
         state->state = GAME_STATE_MAIN_MENU;
-    } else if (input_is_key_pressed(&state->input.kb, KB_F1)) {
+    }
+    if (input_is_key_pressed(&state->input.kb, KB_F1)) {
         state->state = GAME_STATE_PLAYING;
     }
     if (level_process_shared_events()) {
