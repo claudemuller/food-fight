@@ -5,16 +5,18 @@
 #include "state.h"
 #include "utils.h"
 
+#define UI_PADDING 10.0f
 #define UI_HEADER_SIZE 40.0f
 #define UI_HEADER_SIZE_ALT 20.0f
 
 #define UI_TEXT_SIZE 18.0f
+#define UI_HINT_SIZE 14.0f
 
 #define UI_EDIT_MODE_SIZE 22.0f
 
 #define UI_MENU_ITEM_SIZE 20.0f
 
-#define UI_DEBUG_FONT_SIZE 16
+#define UI_DEBUG_FONT_SIZE 16.0f
 
 typedef enum {
     ALIGN_NONE,
@@ -33,6 +35,8 @@ typedef struct {
     bool hover;
 } MenuItem;
 
+bool ui_get_hovered(void);
+void ui_set_hovered(const bool hovered);
 void render_debug_ui(GameState* state);
 bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id, const char* hint);
 bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, const Color hover_color);

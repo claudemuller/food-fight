@@ -33,6 +33,7 @@ typedef struct GameState {
     State state;
     Camera2D camera;
     Level* active_level;
+    bool ui_hovered;
     bool is_running;
     bool debug;
 } GameState;

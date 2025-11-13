@@ -116,7 +116,6 @@ Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w,
 Vector2 screenp_to_gridp(const Vector2 p, const u8 tile_size)
 {
     Vector2 world_space = screenp_to_worldp(p, &state->camera, GetScreenWidth(), GetScreenHeight());
-
     return worldp_to_gridp(world_space, tile_size);
 }
 

@@ -117,7 +117,7 @@ static bool start_new(MemoryArena* level_mem)
         return false;
     }
 
-    state.state = GAME_STATE_MAIN_MENU;
+    state.state = GAME_STATE_EDITING;
 
     // TODO: read level file data
 

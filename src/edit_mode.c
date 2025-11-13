@@ -4,6 +4,7 @@
 #include "input.h"
 #include "level.h"
 #include "nfd.h"
+#include "player.h"
 #include "raylib.h"
 #include "ui.h"
 #include <stdbool.h>
@@ -52,8 +53,8 @@ void edit_mode_render(void)
 
         BeginMode2D(state->camera);
         {
-            level_render();
             render_edit_mode_grid();
+            level_render();
 
             if (!state->active_level->tilemap.tileset.active) {
                 render_edit_mode_brush();
@@ -200,26 +201,58 @@ static void render_edit_mode_ui(void)
     DrawTextEx(*font, "Brush: ", (Vector2){dst.x - 80.0f, dst.y + 8}, UI_EDIT_MODE_SIZE, 1.0f, PALEBLUE_D);
 
     if (state->state == GAME_STATE_EDITING) {
-        DrawTextEx(*font, "Editing:", (Vector2){10.0f, 10}, UI_HEADER_SIZE_ALT, 1.0f, PALEBLUE_D);
-        DrawTextEx(*font, "Reset Player: F2", (Vector2){10.0f, 30}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
-        DrawTextEx(*font, "Save Level: F4", (Vector2){10.0f, 50}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
+        // DrawTextEx(*font, "Reset Player: F2", (Vector2){10.0f, 30}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
+        // DrawTextEx(*font, "Save Level: F4", (Vector2){10.0f, 50}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
     }
 
-    if (ui_draw_button((Vector2){10.0f, 60.0f}, (Vector2){50.0f, 20.0f}, PALEBLUE_D, PALEBLUE_DES)) {
-        util_debug("button pressed");
+    if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 10.0f), UI_PADDING},
+                             32.0f,
+                             "assets/textures/recycle-solid-full.png",
+                             "Reset Player")) {
+        player_reset(&state->active_level->player);
     }
-    if (ui_draw_image_button(
-            (Vector2){10.0f, 60.0f}, 64.0f, "assets/textures/floppy-disk-solid-full.png", "Save level")) {
-        util_debug("button pressed");
+
+    if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 8.0f), UI_PADDING},
+                             32.0f,
+                             "assets/textures/trash-solid-full.png",
+                             "Trash level")) {
+        util_debug("trash pressed");
+    }
+
+    if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 6.0f), UI_PADDING},
+                             32.0f,
+                             "assets/textures/folder-open-solid-full.png",
+                             "Load level")) {
+        util_debug("open pressed");
+    }
+
+    if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 4.0f), UI_PADDING},
+                             32.0f,
+                             "assets/textures/floppy-disk-solid-full.png",
+                             "Save level")) {
+        util_debug("save pressed");
+    }
+
+    if (ui_draw_image_button((Vector2){GetScreenWidth() - 32.0f - UI_PADDING, UI_PADDING},
+                             32.0f,
+                             "assets/textures/door-open-solid-full.png",
+                             "Quit")) {
+        // TODO: check if there are unsaved changes
+        state->is_running = false;
     }
 }
 
 static bool update_edit_mode_tileset(void)
 {
+    if (ui_get_hovered()) {
+        return false;
+    }
+
     Tilemap* tm = &state->active_level->tilemap;
     Tileset* ts = &tm->tileset;
     ts->active = false;
 
+    ui_set_hovered(false);
     if (!CheckCollisionPointRec(state->input.mouse.pos_px,
                                 (Rectangle){
                                     .x = ts->pos.x * SCALE,
@@ -227,6 +260,7 @@ static bool update_edit_mode_tileset(void)
                                     .width = ts->size.x * SCALE,
                                     .height = ts->size.y * SCALE,
                                 })) {
+        ui_set_hovered(true);
         return false;
     }
 
@@ -307,6 +341,10 @@ static void render_edit_mode_tileset(void)
 // Renders the brush at the mouse pointer.
 static void render_edit_mode_brush(void)
 {
+    if (ui_get_hovered()) {
+        return;
+    }
+
     Tilemap* tm = &state->active_level->tilemap;
 
     Vector2 grid = screenp_to_gridp((Vector2){state->input.mouse.pos_px.x, state->input.mouse.pos_px.y},

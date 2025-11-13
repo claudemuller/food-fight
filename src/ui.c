@@ -4,6 +4,20 @@
 #include "level.h"
 #include "raylib.h"
 
+static bool ui_hovered;
+
+static bool is_hovering(const Vector2 p, Rectangle r);
+
+bool ui_get_hovered(void)
+{
+    return ui_hovered;
+}
+
+void ui_set_hovered(const bool hovered)
+{
+    ui_hovered = hovered;
+}
+
 void render_debug_ui(GameState* state)
 {
     Tilemap* tm = &state->active_level->tilemap;
@@ -12,13 +26,19 @@ void render_debug_ui(GameState* state)
 
     DrawTextEx(*font,
                TextFormat("Zoom: x%.2f", state->camera.zoom),
-               (Vector2){GetScreenWidth() - 150, 10},
+               (Vector2){10.0f, 10.0f},
                UI_DEBUG_FONT_SIZE,
                1.0f,
                PALEBLUE_D);
     DrawTextEx(*font,
                TextFormat("STATE: %s", state->state == GAME_STATE_PLAYING ? "playing" : "editing"),
-               (Vector2){GetScreenWidth() - 150, 25},
+               (Vector2){10.0f, 25.0f},
+               UI_DEBUG_FONT_SIZE,
+               1.0f,
+               PALEBLUE_D);
+    DrawTextEx(*font,
+               TextFormat("ui_active: %s [%d]", ui_get_hovered() ? "true" : "false", ui_hovered),
+               (Vector2){10.0f, 40.0f},
                UI_DEBUG_FONT_SIZE,
                1.0f,
                PALEBLUE_D);
@@ -71,20 +91,30 @@ bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id,
         }
     }
 
-    Rectangle rec = {
+    Rectangle dst = {
         .x = pos.x,
         .y = pos.y,
-        .width = tex->width,
-        .height = tex->height,
+        .width = size,
+        .height = size,
     };
 
-    if (CheckCollisionPointRec(GetMousePosition(), rec)) {
+    if (is_hovering(GetMousePosition(), dst)) {
+        f32 txt_len = MeasureText(hint, UI_HINT_SIZE);
+        f32 x = pos.x + (size * 0.5f) - (txt_len * 0.5f);
+        f32 y = pos.y + size + 10.0f;
+        DrawText(hint, x, y, UI_HINT_SIZE, PALEBLUE_D);
+
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             return true;
         }
     }
 
-    DrawTextureEx(*tex, pos, 0.0f, tex->width / size, WHITE);
+    Rectangle src = {
+        .width = tex->width,
+        .height = tex->height,
+    };
+
+    DrawTexturePro(*tex, src, dst, (Vector2){0}, 0.0f, WHITE);
 
     return false;
 }
@@ -99,7 +129,7 @@ bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, 
     };
     Color c = bgcolor;
 
-    if (CheckCollisionPointRec(GetMousePosition(), btn_rec)) {
+    if (is_hovering(GetMousePosition(), btn_rec)) {
         c = hover_color;
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -109,5 +139,17 @@ bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, 
 
     DrawRectangleRec(btn_rec, c);
 
+    return false;
+}
+
+// ------------------------------------------------------------------------------------------------
+
+static bool is_hovering(const Vector2 p, Rectangle r)
+{
+    if (CheckCollisionPointRec(p, r)) {
+        ui_hovered = true;
+        return true;
+    }
+    ui_hovered = false;
     return false;
 }
