@@ -4,7 +4,7 @@
 #include "level.h"
 #include "raylib.h"
 
-static bool ui_hovered;
+static bool ui_hovered = true;
 
 bool ui_get_hovered(void)
 {
@@ -104,16 +104,21 @@ bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id,
         .height = size,
     };
 
-    if (ui_is_hovering(GetMousePosition(), dst)) {
+    ui_hovered = ui_is_hovering(GetMousePosition(), dst);
+    if (ui_hovered) {
         f32 txt_len = MeasureText(hint, UI_HINT_SIZE);
         f32 x = pos.x + (size * 0.5f) - (txt_len * 0.5f);
         f32 y = pos.y + size + 10.0f;
         DrawText(hint, x, y, UI_HINT_SIZE, PALEBLUE_D);
 
+        DrawRectangleLinesEx(dst, 2.0f, RED);
+
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             return true;
         }
     }
+
+    DrawRectangleRec(dst, (Color){0, 150, 0, 100});
 
     Rectangle src = {
         .width = tex->width,
@@ -135,7 +140,8 @@ bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, 
     };
     Color c = bgcolor;
 
-    if (ui_is_hovering(GetMousePosition(), btn_rec)) {
+    ui_hovered = ui_is_hovering(GetMousePosition(), btn_rec);
+    if (ui_hovered) {
         c = hover_color;
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {

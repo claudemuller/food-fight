@@ -13,9 +13,12 @@ static GameState* state;
 
 static void update_edit_mode(void);
 static void render_edit_mode_grid(void);
+
 static void render_edit_mode_ui(void);
+
 static bool update_edit_mode_tileset(void);
 static void render_edit_mode_tileset(void);
+
 static void render_edit_mode_brush(void);
 
 void edit_mode_init(GameState* game_state)
@@ -32,6 +35,10 @@ void edit_mode_update(void)
         state->state = GAME_STATE_PLAYING;
     }
     if (level_process_shared_events()) {
+        return;
+    }
+
+    if (ui_get_hovered()) {
         return;
     }
 
