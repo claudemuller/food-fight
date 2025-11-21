@@ -31,7 +31,7 @@ typedef double f64;
 
 #pragma clang diagnostic pop
 
-static inline void util_inf(const char* fmt, ...)
+__attribute__((format(printf, 1, 2))) static inline void util_inf(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -41,7 +41,7 @@ static inline void util_inf(const char* fmt, ...)
     va_end(ap);
 }
 
-static inline void util_err(const char* fmt, ...)
+__attribute__((format(printf, 1, 2))) static inline void util_err(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -51,7 +51,7 @@ static inline void util_err(const char* fmt, ...)
     va_end(ap);
 }
 
-static inline void util_fat(const char* fmt, ...)
+__attribute__((format(printf, 1, 2))) static inline void util_fat(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);

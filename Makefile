@@ -1,8 +1,8 @@
 CC = clang
 DBG_BIN = lldb
 CFLAGS += -std=c11
-CFLAGS += -Wall -pedantic -Wextra -Wmissing-declarations
-# CFLAGS += -Werror 
+CFLAGS += -Wall -pedantic -Wextra -Wmissing-declarations -Wfloat-conversion -Wsign-conversion -Wconversion
+CFLAGS += -Werror 
 LIBS = -I./lib
 CFLAGS = -I$$HOME/repos/3rd-party/nativefiledialog-extended/src/include  
 CFLAGS += -I$$HOME/repos/3rd-party/raylib/src 
