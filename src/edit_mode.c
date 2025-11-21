@@ -38,11 +38,9 @@ void edit_mode_update(void)
         return;
     }
 
-    if (ui_get_hovered()) {
-        return;
-    }
+    update_edit_mode_tileset();
 
-    if (update_edit_mode_tileset()) {
+    if (state->ui_hovered) {
         return;
     }
 
@@ -63,7 +61,7 @@ void edit_mode_render(void)
             render_edit_mode_grid();
             level_render();
 
-            if (!state->active_level->tilemap.tileset.active) {
+            if (!state->ui_hovered) {
                 render_edit_mode_brush();
             }
         }
@@ -198,6 +196,7 @@ static void render_edit_mode_ui(void)
         .height = tm->tile_size * SCALE,
     };
 
+    // Draw brush preview UI element
     if (tm->brush.is_set) {
         DrawTexturePro(*tm->tileset.texture, tm->brush.src, dst, (Vector2){0, 0}, 0.0f, WHITE);
     } else {
@@ -255,7 +254,6 @@ static bool update_edit_mode_tileset(void)
     Tileset* ts = &tm->tileset;
     ts->active = false;
 
-    // ui_set_hovered(false);
     if (!ui_is_hovering(state->input.mouse.pos_px,
                         (Rectangle){
                             .x = ts->pos.x * SCALE,
@@ -263,7 +261,6 @@ static bool update_edit_mode_tileset(void)
                             .width = ts->size.x * SCALE,
                             .height = ts->size.y * SCALE,
                         })) {
-        // ui_set_hovered(true);
         return false;
     }
 
@@ -344,10 +341,6 @@ static void render_edit_mode_tileset(void)
 // Renders the brush at the mouse pointer.
 static void render_edit_mode_brush(void)
 {
-    if (ui_get_hovered()) {
-        return;
-    }
-
     Tilemap* tm = &state->active_level->tilemap;
 
     Vector2 grid = screenp_to_gridp((Vector2){state->input.mouse.pos_px.x, state->input.mouse.pos_px.y},

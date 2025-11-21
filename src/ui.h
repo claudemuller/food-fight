@@ -35,8 +35,7 @@ typedef struct {
     bool hover;
 } MenuItem;
 
-bool ui_get_hovered(void);
-void ui_set_hovered(const bool hovered);
+void ui_init(GameState* game_state);
 bool ui_is_hovering(const Vector2 p, Rectangle r);
 void render_debug_ui(GameState* state);
 bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id, const char* hint);

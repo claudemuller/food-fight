@@ -50,6 +50,8 @@ bool game_init(MemoryArena* mem)
         return false;
     }
 
+    ui_init(&state);
+
     edit_mode_init(&state);
     main_menu_init(&state);
     game_over_init(&state);
@@ -76,6 +78,8 @@ void game_run(void)
         } break;
 
         case GAME_STATE_EDITING: {
+            state.ui_hovered = false;
+
             edit_mode_update();
             edit_mode_render();
         } break;

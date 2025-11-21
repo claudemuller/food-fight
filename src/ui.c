@@ -4,24 +4,20 @@
 #include "level.h"
 #include "raylib.h"
 
-static bool ui_hovered = true;
+static GameState* state;
 
-bool ui_get_hovered(void)
+void ui_init(GameState* game_state)
 {
-    return ui_hovered;
-}
-
-void ui_set_hovered(const bool hovered)
-{
-    ui_hovered = hovered;
+    state = game_state;
 }
 
 bool ui_is_hovering(const Vector2 p, Rectangle r)
 {
-    if (CheckCollisionPointRec(p, r)) {
-        return ui_hovered = true;
+    bool hovered = CheckCollisionPointRec(p, r);
+    if (hovered) {
+        state->ui_hovered = true;
     }
-    return ui_hovered = false;
+    return hovered;
 }
 
 void render_debug_ui(GameState* state)
@@ -43,7 +39,7 @@ void render_debug_ui(GameState* state)
                1.0f,
                PALEBLUE_D);
     DrawTextEx(*font,
-               TextFormat("ui_active: %s [%d]", ui_get_hovered() ? "true" : "false", ui_hovered),
+               TextFormat("ui_active: %s [%d]", state->ui_hovered ? "true" : "false", state->ui_hovered),
                (Vector2){10.0f, 40.0f},
                UI_DEBUG_FONT_SIZE,
                1.0f,
@@ -104,8 +100,7 @@ bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id,
         .height = size,
     };
 
-    ui_hovered = ui_is_hovering(GetMousePosition(), dst);
-    if (ui_hovered) {
+    if (ui_is_hovering(GetMousePosition(), dst)) {
         f32 txt_len = MeasureText(hint, UI_HINT_SIZE);
         f32 x = pos.x + (size * 0.5f) - (txt_len * 0.5f);
         f32 y = pos.y + size + 10.0f;
@@ -140,8 +135,7 @@ bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, 
     };
     Color c = bgcolor;
 
-    ui_hovered = ui_is_hovering(GetMousePosition(), btn_rec);
-    if (ui_hovered) {
+    if (ui_is_hovering(GetMousePosition(), btn_rec)) {
         c = hover_color;
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
