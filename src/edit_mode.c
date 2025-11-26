@@ -3,7 +3,6 @@
 #include "gfx.h"
 #include "input.h"
 #include "level.h"
-#include "nfd.h"
 #include "player.h"
 #include "raylib.h"
 #include "ui.h"
@@ -99,7 +98,7 @@ static void update_edit_mode(void)
 
     if (input_is_key_pressed(&state->input.kb, KB_F4)) {
         if (!level_save()) {
-            message_box("Error", TextFormat("Failed to save level: %s", NFD_GetError()));
+            message_box("Error", TextFormat("Failed to save level: %s", ""));
             return;
         }
 
@@ -224,7 +223,7 @@ static void render_edit_mode_ui(void)
                              "assets/textures/folder-open-solid-full.png",
                              "Load level")) {
         if (!level_load()) {
-            message_box("Error", TextFormat("Failed to load level: %s", NFD_GetError()));
+            message_box("Error", TextFormat("Failed to load level: %s", ""));
             return;
         }
 
@@ -237,7 +236,7 @@ static void render_edit_mode_ui(void)
                              "assets/textures/floppy-disk-solid-full.png",
                              "Save level")) {
         if (!level_save()) {
-            message_box("Error", TextFormat("Failed to save level: %s", NFD_GetError()));
+            message_box("Error", TextFormat("Failed to save level: %s", ""));
             return;
         }
 

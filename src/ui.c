@@ -82,6 +82,10 @@ void render_debug_ui(GameState* state)
                PALEBLUE_D);
 }
 
+void message_box(const char* title, const char* msg)
+{
+}
+
 bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id, const char* hint)
 {
     Texture2D* tex = assetmgr_get_texture(tex_id);

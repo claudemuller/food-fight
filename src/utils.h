@@ -20,8 +20,10 @@ typedef uint64_t u64;
 typedef float f32;
 typedef double f64;
 
+#ifdef __LINUX__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#endif
 
 #define util_error(fmt, ...) util_err("🛑 ERROR [%s:%d]: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define util_info(fmt, ...) util_inf("ℹ️ INFO: " fmt "\n", ##__VA_ARGS__)
@@ -29,9 +31,15 @@ typedef double f64;
 #define util_debug(fmt, ...) util_inf("🔍 DEBUG [%s:%d]: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define util_fatal(fmt, ...) util_fat("💀 FATAL [%s:%d]: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
+#ifdef __LINUX__
 #pragma clang diagnostic pop
+#endif
 
+#ifdef __LINUX__
 __attribute__((format(printf, 1, 2))) static inline void util_inf(const char* fmt, ...)
+#else
+static inline void util_inf(const char* fmt, ...)
+#endif
 {
     va_list ap;
     va_start(ap, fmt);
@@ -41,7 +49,11 @@ __attribute__((format(printf, 1, 2))) static inline void util_inf(const char* fm
     va_end(ap);
 }
 
+#ifdef __LINUX__
 __attribute__((format(printf, 1, 2))) static inline void util_err(const char* fmt, ...)
+#else
+static inline void util_err(const char* fmt, ...)
+#endif
 {
     va_list ap;
     va_start(ap, fmt);
@@ -51,7 +63,11 @@ __attribute__((format(printf, 1, 2))) static inline void util_err(const char* fm
     va_end(ap);
 }
 
+#ifdef __LINUX__
 __attribute__((format(printf, 1, 2))) static inline void util_fat(const char* fmt, ...)
+#else
+static inline void util_fat(const char* fmt, ...)
+#endif
 {
     va_list ap;
     va_start(ap, fmt);

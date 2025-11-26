@@ -7,7 +7,6 @@
 #include "state.h"
 #include "ui.h"
 #include "utils.h"
-#include <nfd.h>
 #include <stddef.h>
 
 static GameState* state;
@@ -115,7 +114,7 @@ static void start_fn(void)
 static void load_level_fn(void)
 {
     if (!level_load()) {
-        message_box("Error", TextFormat("Failed to load level: %s", NFD_GetError()));
+        message_box("Error", TextFormat("Failed to load level: %s", ""));
         return;
     }
 

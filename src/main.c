@@ -1,6 +1,5 @@
 #include "arena.h"
 #include "game.h"
-#include <stdlib.h>
 
 int main(void)
 {

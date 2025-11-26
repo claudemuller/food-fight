@@ -2,3 +2,4 @@ bin
 .cache
 .idea
 data/temp*
+vc140.pdb 
