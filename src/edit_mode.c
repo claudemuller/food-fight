@@ -69,7 +69,7 @@ void edit_mode_render(void)
         }
         EndMode2D();
 
-        // Not affected by camera
+        // --- Not affected by camera -------------------------------------------------------------
         {
             render_edit_mode_ui();
 
@@ -81,7 +81,7 @@ void edit_mode_render(void)
     EndDrawing();
 }
 
-// ------------------------------------------------------------------------------------------------
+// ································································································
 
 static void update_edit_mode(void)
 {
@@ -146,7 +146,7 @@ static void update_edit_mode(void)
         }
     }
 
-    // Delete tile
+    // --- Delete tile ----------------------------------------------------------------------------
     if (input_is_mouse_down(&state->input.mouse, MB_RIGHT)) {
         Vector2 grid = screenp_to_gridp(state->input.mouse.pos_px, tm->tile_size);
         size_t idx = (size_t)((grid.x * tm->tile_size) + grid.y);
@@ -180,7 +180,7 @@ static void render_edit_mode_ui(void)
 
     Tilemap* tm = &state->active_level->tilemap;
 
-    // Render brush selection UI element
+    // --- Render brush selection UI element ------------------------------------------------------
     Rectangle dst = {
         .x = (tm->tileset.pos.x + tm->tileset.size.x - tm->tileset.tile_size) * SCALE,
         .y = (tm->tileset.pos.y - tm->tileset.tile_size - 10) * SCALE,
@@ -188,7 +188,6 @@ static void render_edit_mode_ui(void)
         .height = tm->tile_size * SCALE,
     };
 
-    // Draw brush preview UI element
     if (tm->brush.is_set) {
         DrawTexturePro(*tm->tileset.texture, tm->brush.src, dst, (Vector2){0, 0}, 0.0f, WHITE);
     } else {
@@ -203,6 +202,7 @@ static void render_edit_mode_ui(void)
         // DrawTextEx(*font, "Save Level: F4", (Vector2){10.0f, 50}, UI_TEXT_SIZE, 1.0f, PALEBLUE_D);
     }
 
+    // --- Reset player ---------------------------------------------------------------------------
     if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 10.0f), UI_PADDING},
                              32.0f,
                              "assets/textures/recycle-solid-full.png",
@@ -210,6 +210,7 @@ static void render_edit_mode_ui(void)
         player_reset(&state->active_level->player);
     }
 
+    // --- Trash level ----------------------------------------------------------------------------
     if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 8.0f), UI_PADDING},
                              32.0f,
                              "assets/textures/trash-solid-full.png",
@@ -217,6 +218,7 @@ static void render_edit_mode_ui(void)
         util_debug("trash pressed");
     }
 
+    // --- Load level -----------------------------------------------------------------------------
     if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 6.0f), UI_PADDING},
                              32.0f,
                              "assets/textures/folder-open-solid-full.png",
@@ -229,6 +231,7 @@ static void render_edit_mode_ui(void)
         message_box("Success!", "Level data loaded successfully.");
     }
 
+    // --- Save level -----------------------------------------------------------------------------
     if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 4.0f), UI_PADDING},
                              32.0f,
                              "assets/textures/floppy-disk-solid-full.png",
@@ -241,6 +244,7 @@ static void render_edit_mode_ui(void)
         message_box("Success!", "Level data saved successfully.");
     }
 
+    // --- Exit -----------------------------------------------------------------------------------
     if (ui_draw_image_button((Vector2){GetScreenWidth() - 32.0f - UI_PADDING, UI_PADDING},
                              32.0f,
                              "assets/textures/door-open-solid-full.png",
@@ -273,6 +277,7 @@ static bool update_edit_mode_tileset(void)
     ts->hovered_tile.x = (u32)floorf(mouse_relx / ts->tile_size / SCALE);
     ts->hovered_tile.y = (u32)floorf(mouse_rely / ts->tile_size / SCALE);
 
+    // --- Set brush  -----------------------------------------------------------------------------
     if (input_is_mouse_pressed(&state->input.mouse, MB_LEFT)) {
         if (!tm->brush.is_set) {
             tm->brush.is_set = true;
@@ -323,10 +328,10 @@ static void render_edit_mode_tileset(void)
         .height = ts->size.y * SCALE,
     };
 
-    // Render tilset
+    // --- Render tilset --------------------------------------------------------------------------
     DrawTexturePro(*ts->texture, src, dst, (Vector2){0}, 0.0f, WHITE);
 
-    // Render hovered tilset tile indicator
+    // --- Render hovered tilset tile indicator ---------------------------------------------------
     if (ts->active) {
         DrawRectangleLinesEx(
             (Rectangle){
