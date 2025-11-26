@@ -5,6 +5,7 @@ clang ^
     -I"C:\lib\raylib-5.5-mingw_w64\include" ^
     -I"lib" ^
     src\*.c ^
+    lib\raygui\*.c ^
     -o bin\foodfight.exe ^
     -L"C:\lib\raylib-5.5-mingw_w64\lib" ^
     -L"C:\msys64\mingw64\lib" ^

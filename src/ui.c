@@ -3,12 +3,16 @@
 #include "gfx.h"
 #include "level.h"
 #include "raylib.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui/gui_window_file_dialog.h"
+#include "raygui/raygui.h"
 
 static GameState* state;
 
 void ui_init(GameState* game_state)
 {
     state = game_state;
+    GuiLoadStyle("assets/styles/light.rgs");
 }
 
 bool ui_is_hovering(const Vector2 p, Rectangle r)
@@ -82,8 +86,18 @@ void render_debug_ui(GameState* state)
                PALEBLUE_D);
 }
 
+void message_box_content(Vector2 position, Vector2 scroll)
+{
+    GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 50 + scroll.y, 100, 25}, "Button 1");
+    GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 100 + scroll.y, 100, 25}, "Button 2");
+}
+
 void message_box(const char* title, const char* msg)
 {
+    Vector2 window_position = {10, 10};
+    Vector2 window_size = {200, 400};
+    GuiWindowFloating(
+        &window_position, &window_size, false, false, false, &message_box_content, (Vector2){140, 320}, &scroll, title);
 }
 
 bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id, const char* hint)

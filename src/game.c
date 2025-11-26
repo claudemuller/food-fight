@@ -46,6 +46,8 @@ bool game_init(MemoryArena* mem)
 
     ui_init(&state);
 
+    message_box("test", "testing");
+
     edit_mode_init(&state);
     main_menu_init(&state);
     game_over_init(&state);
