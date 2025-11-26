@@ -11,6 +11,8 @@
 
 static GameState* state;
 
+static void save_level(void);
+
 static void update_edit_mode(void);
 static void render_edit_mode_grid(void);
 
@@ -96,22 +98,12 @@ static void update_edit_mode(void)
     }
 
     if (input_is_key_pressed(&state->input.kb, KB_F4)) {
-        nfdchar_t* path;
-        nfdfilteritem_t filters[2] = {{"Level data", "bin"}};
-
-        nfdresult_t res = NFD_SaveDialog(&path, filters, 1, NULL, "data/");
-        if (res == NFD_OKAY) {
-            if (!SaveFileData(path, state->active_level, sizeof(*state->active_level))) {
-                util_error("Failed to save file: %s", path);
-            } else {
-                message_box("Success!", "Level data saved successfully.");
-            }
-
-            NFD_FreePath(path);
-        } else if (res == NFD_CANCEL) {
-        } else {
-            util_error("Failed to save file: %s", NFD_GetError());
+        if (!level_save()) {
+            message_box("Error", TextFormat("Failed to save level: %s", NFD_GetError()));
+            return;
         }
+
+        message_box("Success!", "Level data saved successfully.");
     }
 
     if (input_is_key_pressed(&state->input.kb, KB_LSHFT)) {
@@ -229,14 +221,24 @@ static void render_edit_mode_ui(void)
                              32.0f,
                              "assets/textures/folder-open-solid-full.png",
                              "Load level")) {
-        util_debug("open pressed");
+        if (!level_load()) {
+            message_box("Error", TextFormat("Failed to load level: %s", NFD_GetError()));
+            return;
+        }
+
+        message_box("Success!", "Level data loaded successfully.");
     }
 
     if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 4.0f), UI_PADDING},
                              32.0f,
                              "assets/textures/floppy-disk-solid-full.png",
                              "Save level")) {
-        util_debug("save pressed");
+        if (!level_save()) {
+            message_box("Error", TextFormat("Failed to save level: %s", NFD_GetError()));
+            return;
+        }
+
+        message_box("Success!", "Level data saved successfully.");
     }
 
     if (ui_draw_image_button((Vector2){GetScreenWidth() - 32.0f - UI_PADDING, UI_PADDING},

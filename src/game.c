@@ -71,6 +71,8 @@ void game_run(void)
     }
 
     while (!WindowShouldClose() && state.is_running) {
+        state.ui_hovered = false;
+
         switch (state.state) {
         case GAME_STATE_MAIN_MENU: {
             main_menu_render();
@@ -78,10 +80,8 @@ void game_run(void)
         } break;
 
         case GAME_STATE_EDITING: {
-            state.ui_hovered = false;
-
-            edit_mode_update();
             edit_mode_render();
+            edit_mode_update();
         } break;
 
         case GAME_STATE_PLAYING: {

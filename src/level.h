@@ -65,6 +65,8 @@ typedef struct Level {
 bool level_init(MemoryArena* level_mem, GameState* state);
 void level_update(void);
 void level_render(void);
+bool level_load(void);
+bool level_save(void);
 
 bool level_process_shared_events(void);
 

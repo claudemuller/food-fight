@@ -114,24 +114,12 @@ static void start_fn(void)
 
 static void load_level_fn(void)
 {
-    nfdu8char_t* path;
-    nfdu8filteritem_t filters[2] = {{"Level data", "bin"}};
-
-    nfdresult_t res = NFD_OpenDialog(&path, filters, 1, "data/");
-    if (res == NFD_OKAY) {
-        i32 bytes_read = 0;
-        unsigned char* data = LoadFileData(path, &bytes_read);
-        if (!data || bytes_read == 0) {
-            util_error("Failed to load file: %s", path);
-        } else {
-            message_box("Success!", "Level data loaded successfully.");
-        }
-
-        NFD_FreePathU8(path);
-    } else if (res == NFD_CANCEL) {
-    } else {
-        util_error("Failed to open file: %s", NFD_GetError());
+    if (!level_load()) {
+        message_box("Error", TextFormat("Failed to load level: %s", NFD_GetError()));
+        return;
     }
+
+    message_box("Success!", "Level data loaded successfully.");
 }
 
 static void build_level_fn(void)

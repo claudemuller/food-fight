@@ -6,6 +6,7 @@
 #include "state.h"
 #include "utils.h"
 #include <math.h>
+#include <nfd.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -77,6 +78,62 @@ void level_render(void)
     render_bg();
     render_map();
     player_render();
+}
+
+bool level_load(void)
+{
+    nfdu8char_t* path;
+    nfdu8filteritem_t filters[2] = {{"Level data", "bin"}};
+
+    nfdresult_t res = NFD_OpenDialog(&path, filters, 1, "data/");
+    if (res == NFD_OKAY) {
+        i32 bytes_read = 0;
+        unsigned char* data = LoadFileData(path, &bytes_read);
+        if (!data || bytes_read == 0) {
+            util_error("Failed to load file: %s", path);
+            return false;
+        } else {
+            return true;
+        }
+
+        state->active_level = (Level*)data;
+
+        NFD_FreePathU8(path);
+
+        return true;
+    } else if (res == NFD_CANCEL) {
+    } else {
+        util_error("Failed to load file: %s", NFD_GetError());
+        return false;
+    }
+
+    return false;
+}
+
+bool level_save(void)
+{
+    nfdchar_t* path;
+    nfdfilteritem_t filters[2] = {{"Level data", "bin"}};
+
+    nfdresult_t res = NFD_SaveDialog(&path, filters, 1, "data/", NULL);
+    if (res == NFD_OKAY) {
+        if (!SaveFileData(path, state->active_level, sizeof(*state->active_level))) {
+            util_error("Failed to save file: %s", path);
+            return false;
+        } else {
+            return true;
+        }
+
+        NFD_FreePath(path);
+
+        return true;
+    } else if (res == NFD_CANCEL) {
+    } else {
+        util_error("Failed to save file: %s", NFD_GetError());
+        return false;
+    }
+
+    return false;
 }
 
 bool level_process_shared_events(void)
