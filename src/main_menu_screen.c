@@ -104,7 +104,7 @@ void main_menu_render(void)
     EndDrawing();
 }
 
-// ------------------------------------------------------------------------------------------------
+// ································································································
 
 static void start_fn(void)
 {
@@ -114,11 +114,11 @@ static void start_fn(void)
 static void load_level_fn(void)
 {
     if (!level_load()) {
-        message_box("Error", TextFormat("Failed to load level: %s", ""));
+        ui_message_box("Error", TextFormat("Failed to load level: %s", ""));
         return;
     }
 
-    message_box("Success!", "Level data loaded successfully.");
+    ui_message_box("Success!", "Level data loaded successfully.");
 }
 
 static void build_level_fn(void)

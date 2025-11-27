@@ -71,7 +71,7 @@ void edit_mode_render(void)
             render_edit_mode_ui();
 
             if (state->debug) {
-                render_debug_ui(state);
+                ui_render_debug_ui(state);
             }
         }
     }
@@ -96,11 +96,11 @@ static void update_edit_mode(void)
 
     if (input_is_key_pressed(&state->input.kb, KB_F4)) {
         if (!level_save()) {
-            message_box("Error", TextFormat("Failed to save level: %s", ""));
+            ui_message_box("Error", TextFormat("Failed to save level: %s", ""));
             return;
         }
 
-        message_box("Success!", "Level data saved successfully.");
+        ui_message_box("Success!", "Level data saved successfully.");
     }
 
     if (input_is_key_pressed(&state->input.kb, KB_LSHFT)) {
@@ -221,11 +221,11 @@ static void render_edit_mode_ui(void)
                              "assets/textures/folder-open-solid-full.png",
                              "Load level")) {
         if (!level_load()) {
-            message_box("Error", TextFormat("Failed to load level: %s", ""));
+            ui_message_box("Error", TextFormat("Failed to load level: %s", ""));
             return;
         }
 
-        message_box("Success!", "Level data loaded successfully.");
+        ui_message_box("Success!", "Level data loaded successfully.");
     }
 
     // --- Save level -----------------------------------------------------------------------------
@@ -234,11 +234,11 @@ static void render_edit_mode_ui(void)
                              "assets/textures/floppy-disk-solid-full.png",
                              "Save level")) {
         if (!level_save()) {
-            message_box("Error", TextFormat("Failed to save level: %s", ""));
+            ui_message_box("Error", TextFormat("Failed to save level: %s", ""));
             return;
         }
 
-        message_box("Success!", "Level data saved successfully.");
+        ui_message_box("Success!", "Level data saved successfully.");
     }
 
     // --- Exit -----------------------------------------------------------------------------------

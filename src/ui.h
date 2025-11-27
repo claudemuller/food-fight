@@ -37,8 +37,8 @@ typedef struct {
 
 void ui_init(GameState* game_state);
 bool ui_is_hovering(const Vector2 p, Rectangle r);
-void render_debug_ui(GameState* state);
-void message_box(const char* title, const char* msg);
+void ui_render_debug_ui(GameState* state);
+void ui_message_box(const char* title, const char* msg);
 bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id, const char* hint);
 bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, const Color hover_color);
 

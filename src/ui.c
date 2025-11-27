@@ -25,7 +25,7 @@ bool ui_is_hovering(const Vector2 p, Rectangle r)
     return hovered;
 }
 
-void render_debug_ui(GameState* state)
+void ui_render_debug_ui(GameState* state)
 {
     Tilemap* tm = &state->active_level->tilemap;
     // u32 map_w = tm->tiles_wide * tm->tile_size;
@@ -85,6 +85,8 @@ void render_debug_ui(GameState* state)
                UI_TEXT_SIZE,
                1.0f,
                PALEBLUE_D);
+
+    ui_message_box("test", "testing");
 }
 
 void message_box_content(Vector2 position, Vector2 scroll)
@@ -93,7 +95,7 @@ void message_box_content(Vector2 position, Vector2 scroll)
     GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 100 + scroll.y, 100, 25}, "Button 2");
 }
 
-void message_box(const char* title, const char* _)
+void ui_message_box(const char* title, const char* _)
 {
     Vector2 window_position = {10, 10};
     Vector2 window_size = {200, 400};
@@ -179,4 +181,4 @@ bool ui_draw_button(const Vector2 pos, const Vector2 size, const Color bgcolor, 
     return false;
 }
 
-// ------------------------------------------------------------------------------------------------
+// ································································································

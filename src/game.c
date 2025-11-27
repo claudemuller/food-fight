@@ -46,8 +46,6 @@ bool game_init(MemoryArena* mem)
 
     ui_init(&state);
 
-    message_box("test", "testing");
-
     edit_mode_init(&state);
     main_menu_init(&state);
     game_over_init(&state);
@@ -101,7 +99,7 @@ void game_destroy(void)
     CloseWindow();
 }
 
-// ------------------------------------------------------------------------------------------------
+// ································································································
 
 static bool start_new(MemoryArena* level_mem)
 {
@@ -203,7 +201,7 @@ static void render(void)
             //     level_render_edit_mode_ui();
             // }
             if (state.debug) {
-                render_debug_ui(&state);
+                ui_render_debug_ui(&state);
             }
         }
     }
