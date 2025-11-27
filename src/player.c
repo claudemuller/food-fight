@@ -66,7 +66,7 @@ void player_update(float dt)
 
     for (size_t i = 0; i < n_live_bullets; ++i) {
         Bullet* b = &bullets[live_bullets[i]];
-        b->pos.x += BULLET_VELOCITY * b->dir * dt;
+        b->pos.x += BULLET_VELOCITY * (f32)b->dir * dt;
 
         // TODO: bullet collision with blocks and off screen
     }
@@ -163,12 +163,12 @@ void player_reset(Player* player)
 {
     Vector2 player_wpos = screenp_to_worldp(
         (Vector2){
-            .x = GetScreenWidth() * 0.5f,
-            .y = GetScreenHeight() * 0.5f,
+            .x = (f32)GetScreenWidth() * 0.5f,
+            .y = (f32)GetScreenHeight() * 0.5f,
         },
         &state->camera,
-        GetScreenWidth(),
-        GetScreenHeight());
+        (f32)GetScreenWidth(),
+        (f32)GetScreenHeight());
 
     *player = (Player){
         .pos = player_wpos,
@@ -211,7 +211,7 @@ void player_render(void)
 
     for (size_t i = 0; i < n_live_bullets; ++i) {
         Bullet b = bullets[live_bullets[i]];
-        u16 y = b.pos.y + player->size.y * 0.5f;
+        u16 y = (u16)(b.pos.y + player->size.y * 0.5f);
 
         DrawLineEx((Vector2){b.pos.x, y},
                    (Vector2){

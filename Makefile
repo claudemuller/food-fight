@@ -2,14 +2,11 @@ CC = clang
 DBG_BIN = lldb
 CFLAGS += -std=c11
 CFLAGS += -Wall -pedantic -Wextra -Wmissing-declarations -Wfloat-conversion -Wsign-conversion -Wconversion
-CFLAGS += -Werror 
+CFLAGS += -Werror -isystem ./lib
 LIBS = -I./lib
-CFLAGS = -I$$HOME/repos/3rd-party/nativefiledialog-extended/src/include  
 CFLAGS += -I$$HOME/repos/3rd-party/raylib/src 
-CFLAGS += $(shell pkg-config --cflags gtk+-3.0)
 LDFLAGS += -L$$HOME/repos/3rd-party/raylib/build
-LDFLAGS += -L$$HOME/repos/3rd-party/nativefiledialog-extended/build/src
-LDFLAGS += $(shell pkg-config --libs gtk+-3.0) -lraylib -lm -lpthread -ldl -lnfd
+LDFLAGS += -lraylib -lm -lpthread -ldl 
 ASANFLAGS = -fsanitize=address -fno-common -fno-omit-frame-pointer
 
 SRC_FILES = ./src/*.c

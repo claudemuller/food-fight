@@ -48,12 +48,12 @@ void input_process(Input* input)
     if (IsMouseButtonDown(MOUSE_MIDDLE_BUTTON)) new_mouse_down |= MB_MIDDLE;
 
     // Derive pressed/released from mouse btn transition
-    input->mouse.pressed = (new_mouse_down & ~prev_mouse_down);
+    input->mouse.pressed = (u8)(new_mouse_down & ~prev_mouse_down);
     if (input->mouse.pressed) {
         input->mouse.down_pos_px = input->mouse.pos_px;
     }
-    input->mouse.released = (~new_mouse_down & prev_mouse_down);
-    input->mouse.down = new_mouse_down;
+    input->mouse.released = (u8)(~new_mouse_down & prev_mouse_down);
+    input->mouse.down = (u8)new_mouse_down;
 
     // Store this state for next frame's prev state
     prev_mouse_down = new_mouse_down;
@@ -96,17 +96,17 @@ bool input_is_mouse_released(Mouse* m, MouseButtons b)
 // I was lazy 😅
 bool input_gamepad_button_pressed(const i32 id, GamepadButton b)
 {
-    return IsGamepadButtonPressed(id, b);
+    return IsGamepadButtonPressed(id, (i32)b);
 }
 
 bool input_gamepad_button_released(const i32 id, GamepadButton b)
 {
-    return IsGamepadButtonReleased(id, b);
+    return IsGamepadButtonReleased(id, (i32)b);
 }
 
 bool input_gamepad_button_down(const i32 id, GamepadButton b)
 {
-    return IsGamepadButtonDown(id, b);
+    return IsGamepadButtonDown(id, (i32)b);
 }
 
 void input_reset(Input* input)

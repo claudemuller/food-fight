@@ -37,8 +37,8 @@ bool level_init(MemoryArena* level_mem, GameState* game_state)
         return false;
     }
     tm->tileset.tile_size = MAP_TILE_SIZE;
-    tm->tileset.size.x = tm->tileset.texture->width;
-    tm->tileset.size.y = tm->tileset.texture->height;
+    tm->tileset.size.x = (f32)tm->tileset.texture->width;
+    tm->tileset.size.y = (f32)tm->tileset.texture->height;
     tm->tileset.pos.x = (f32)(WINDOW_WIDTH / SCALE) - tm->tileset.size.x - 10;
     tm->tileset.pos.y = (f32)(WINDOW_HEIGHT / SCALE) - tm->tileset.size.y - 10;
 
@@ -171,7 +171,7 @@ Vector2 screenp_to_worldp(const Vector2 spos, Camera2D* cam, const f32 screen_w,
 // Screen point to grid point.
 Vector2 screenp_to_gridp(const Vector2 p, const u8 tile_size)
 {
-    Vector2 world_space = screenp_to_worldp(p, &state->camera, GetScreenWidth(), GetScreenHeight());
+    Vector2 world_space = screenp_to_worldp(p, &state->camera, (f32)GetScreenWidth(), (f32)GetScreenHeight());
     return worldp_to_gridp(world_space, tile_size);
 }
 
@@ -180,8 +180,8 @@ Vector2 worldp_to_gridp(const Vector2 p, const u8 tile_size)
 {
     // 3️⃣ Snap to the grid
     return (Vector2){
-        .x = (int)floorf(p.x / (float)tile_size),
-        .y = (int)floorf(p.y / (float)tile_size),
+        .x = floorf(p.x / (f32)tile_size),
+        .y = floorf(p.y / (f32)tile_size),
     };
 }
 

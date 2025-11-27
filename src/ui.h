@@ -49,7 +49,7 @@ create_menu_item(const char* label, const u16 x, const u16 y, Font* font, const 
     Vector2 text_size = MeasureTextEx(*font, label, UI_MENU_ITEM_SIZE, 1.0f);
 
     if (align == ALIGN_CENTRE) {
-        posx = GetScreenWidth() * 0.5f - text_size.x * 0.5f;
+        posx = (u16)((f32)GetScreenWidth() * 0.5f - text_size.x * 0.5f);
     }
 
     return (MenuItem){

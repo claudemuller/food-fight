@@ -1,23 +1,22 @@
-#include "raylib.h"
-
-#define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
+#include "raygui/raygui.h"
+#include <raylib.h>
+#include <stdlib.h>
 
 // #include "../../styles/dark/style_dark.h"
 
-static Vector2 window_position = {10, 10};
-static Vector2 window_size = {200, 400};
-static bool minimized = false;
-static bool moving = false;
-static bool resizing = false;
-static Vector2 scroll;
-
-static Vector2 window2_position = {250, 10};
-static Vector2 window2_size = {200, 400};
-static bool minimized2 = false;
-static bool moving2 = false;
-static bool resizing2 = false;
-static Vector2 scroll2;
+// static Vector2 window_position = {10, 10};
+// static Vector2 window_size = {200, 400};
+// static bool minimized = false;
+// static bool moving = false;
+// static bool resizing = false;
+// static Vector2 scroll;
+//
+// static Vector2 window2_position = {250, 10};
+// static Vector2 window2_size = {200, 400};
+// static bool minimized2 = false;
+// static bool moving2 = false;
+// static bool resizing2 = false;
+// static Vector2 scroll2;
 
 void GuiWindowFloating(Vector2* position,
                        Vector2* size,
@@ -45,7 +44,8 @@ void GuiWindowFloating(Vector2* position,
 
         Rectangle title_collision_rect = {position->x,
                                           position->y,
-                                          size->x - (RAYGUI_WINDOW_CLOSEBUTTON_SIZE + close_title_size_delta_half),
+                                          size->x -
+                                              (float)(RAYGUI_WINDOW_CLOSEBUTTON_SIZE + close_title_size_delta_half),
                                           RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
         Rectangle resize_collision_rect = {position->x + size->x - 20, position->y + size->y - 20, 20, 20};
 
@@ -67,11 +67,11 @@ void GuiWindowFloating(Vector2* position,
 
             // clamp window position keep it inside the application area
             if (position->x < 0) position->x = 0;
-            else if (position->x > GetScreenWidth() - size->x)
-                position->x = GetScreenWidth() - size->x;
+            else if (position->x > (float)GetScreenWidth() - size->x)
+                position->x = (float)GetScreenWidth() - size->x;
             if (position->y < 0) position->y = 0;
-            else if (position->y > GetScreenHeight())
-                position->y = GetScreenHeight() - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT;
+            else if (position->y > (float)GetScreenHeight())
+                position->y = (float)GetScreenHeight() - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT;
         }
 
     } else if (*resizing) {
@@ -81,11 +81,11 @@ void GuiWindowFloating(Vector2* position,
 
         // clamp window size to an arbitrary minimum value and the window size as the maximum
         if (size->x < 100) size->x = 100;
-        else if (size->x > GetScreenWidth())
-            size->x = GetScreenWidth();
+        else if (size->x > (float)GetScreenWidth())
+            size->x = (float)GetScreenWidth();
         if (size->y < 100) size->y = 100;
-        else if (size->y > GetScreenHeight())
-            size->y = GetScreenHeight();
+        else if (size->y > (float)GetScreenHeight())
+            size->y = (float)GetScreenHeight();
 
         if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
             *resizing = false;
@@ -96,11 +96,12 @@ void GuiWindowFloating(Vector2* position,
     if (*minimized) {
         GuiStatusBar((Rectangle){position->x, position->y, size->x, RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT}, title);
 
-        if (GuiButton((Rectangle){position->x + size->x - RAYGUI_WINDOW_CLOSEBUTTON_SIZE - close_title_size_delta_half,
-                                  position->y + close_title_size_delta_half,
-                                  RAYGUI_WINDOW_CLOSEBUTTON_SIZE,
-                                  RAYGUI_WINDOW_CLOSEBUTTON_SIZE},
-                      "#120#")) {
+        if (GuiButton(
+                (Rectangle){position->x + size->x - RAYGUI_WINDOW_CLOSEBUTTON_SIZE - (float)close_title_size_delta_half,
+                            position->y + (float)close_title_size_delta_half,
+                            RAYGUI_WINDOW_CLOSEBUTTON_SIZE,
+                            RAYGUI_WINDOW_CLOSEBUTTON_SIZE},
+                "#120#")) {
             *minimized = false;
         }
 
@@ -122,7 +123,7 @@ void GuiWindowFloating(Vector2* position,
             bool require_scissor = size->x < content_size.x || size->y < content_size.y;
 
             if (require_scissor) {
-                BeginScissorMode(scissor.x, scissor.y, scissor.width, scissor.height);
+                BeginScissorMode((int)scissor.x, (int)scissor.y, (int)scissor.width, (int)scissor.height);
             }
 
             draw_content(*position, *scroll);
@@ -133,19 +134,19 @@ void GuiWindowFloating(Vector2* position,
         }
 
         // draw the resize button/icon
-        GuiDrawIcon(71, position->x + size->x - 20, position->y + size->y - 20, 1, WHITE);
+        GuiDrawIcon(71, (int)(position->x + size->x - 20), (int)(position->y + size->y - 20), 1, WHITE);
     }
 }
 
-static void DrawContent(Vector2 position, Vector2 scroll)
-{
-    GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 50 + scroll.y, 100, 25}, "Button 1");
-    GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 100 + scroll.y, 100, 25}, "Button 2");
-    GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 150 + scroll.y, 100, 25}, "Button 3");
-    GuiLabel((Rectangle){position.x + 20 + scroll.x, position.y + 200 + scroll.y, 250, 25}, "A Label");
-    GuiLabel((Rectangle){position.x + 20 + scroll.x, position.y + 250 + scroll.y, 250, 25}, "Another Label");
-    GuiLabel((Rectangle){position.x + 20 + scroll.x, position.y + 300 + scroll.y, 250, 25}, "Yet Another Label");
-}
+// static void DrawContent(Vector2 position, Vector2 scroll)
+// {
+//     GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 50 + scroll.y, 100, 25}, "Button 1");
+//     GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 100 + scroll.y, 100, 25}, "Button 2");
+//     GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 150 + scroll.y, 100, 25}, "Button 3");
+//     GuiLabel((Rectangle){position.x + 20 + scroll.x, position.y + 200 + scroll.y, 250, 25}, "A Label");
+//     GuiLabel((Rectangle){position.x + 20 + scroll.x, position.y + 250 + scroll.y, 250, 25}, "Another Label");
+//     GuiLabel((Rectangle){position.x + 20 + scroll.x, position.y + 300 + scroll.y, 250, 25}, "Yet Another Label");
+// }
 
 // int main(void)
 // {

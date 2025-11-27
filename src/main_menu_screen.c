@@ -23,18 +23,18 @@ void main_menu_init(GameState* game_state)
     state = game_state;
     Font* font = assetmgr_get_font("main");
 
-    u16 text_height = MAIN_MENU_N_ITEMS * UI_MENU_ITEM_SIZE + UI_HEADER_SIZE;
-    u16 starty = GetScreenHeight() * 0.5f - text_height * 0.5f + UI_HEADER_SIZE;
+    u16 text_height = (u16)(MAIN_MENU_N_ITEMS * UI_MENU_ITEM_SIZE + UI_HEADER_SIZE);
+    u16 starty = (u16)((f32)GetScreenHeight() * 0.5f - text_height * 0.5f + UI_HEADER_SIZE);
 
     mm_mitems[n_mm_mitems++] = create_menu_item("Start game", 0.0f, starty, font, start_fn, ALIGN_CENTRE);
 
-    starty += UI_MENU_ITEM_SIZE;
+    starty += (u16)UI_MENU_ITEM_SIZE;
     mm_mitems[n_mm_mitems++] = create_menu_item("Load Level", 0.0f, starty, font, load_level_fn, ALIGN_CENTRE);
 
-    starty += UI_MENU_ITEM_SIZE;
+    starty += (u16)UI_MENU_ITEM_SIZE;
     mm_mitems[n_mm_mitems++] = create_menu_item("Build Level", 0.0f, starty, font, build_level_fn, ALIGN_CENTRE);
 
-    starty += UI_MENU_ITEM_SIZE;
+    starty += (u16)UI_MENU_ITEM_SIZE;
     mm_mitems[n_mm_mitems++] = create_menu_item("Quit", 0.0f, starty, font, quit_fn, ALIGN_CENTRE);
 }
 
@@ -74,11 +74,11 @@ void main_menu_render(void)
 
         // Not affected by camera
         {
-            u16 text_height = n_mm_mitems * UI_MENU_ITEM_SIZE + UI_HEADER_SIZE;
-            u16 starty = GetScreenHeight() * 0.5f - text_height * 0.5f;
+            u16 text_height = (u16)((f32)n_mm_mitems * UI_MENU_ITEM_SIZE + UI_HEADER_SIZE);
+            u16 starty = (u16)((f32)GetScreenHeight() * 0.5f - text_height * 0.5f);
 
             Vector2 header_size = MeasureTextEx(*font, "Food Fight", UI_HEADER_SIZE, 1.0f);
-            u16 headerx = GetScreenWidth() * 0.5f - header_size.x * 0.5f;
+            u16 headerx = (u16)((f32)GetScreenWidth() * 0.5f - header_size.x * 0.5f);
             DrawTextEx(*font, "Food Fight", (Vector2){headerx, starty}, UI_HEADER_SIZE, 1.0f, PALEBLUE_D);
 
             for (size_t i = 0; i < n_mm_mitems; ++i) {

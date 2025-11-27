@@ -10,8 +10,6 @@
 
 static GameState* state;
 
-static void save_level(void);
-
 static void update_edit_mode(void);
 static void render_edit_mode_grid(void);
 
@@ -90,7 +88,7 @@ static void update_edit_mode(void)
     Tilemap* tm = &state->active_level->tilemap;
 
     Vector2 grid = screenp_to_gridp((Vector2){state->input.mouse.pos_px.x, state->input.mouse.pos_px.y},
-                                    state->active_level->tilemap.tile_size);
+                                    (u8)state->active_level->tilemap.tile_size);
 
     if (input_is_key_pressed(&state->input.kb, KB_F2)) {
         player_reset(&state->active_level->player);
@@ -106,36 +104,36 @@ static void update_edit_mode(void)
     }
 
     if (input_is_key_pressed(&state->input.kb, KB_LSHFT)) {
-        scale_mode_grid_x = grid.x;
-        scale_mode_grid_y = grid.y;
+        scale_mode_grid_x = (i32)grid.x;
+        scale_mode_grid_y = (i32)grid.y;
     }
     if (input_is_key_down(&state->input.kb, KB_LSHFT)) {
-        tm->brush.size.x = abs((i32)grid.x - scale_mode_grid_x + 1) * tm->tile_size;
-        tm->brush.size.x = clamp(tm->brush.size.x, tm->tile_size, MAX_BRUSH_SIZE);
-        tm->brush.size.y = abs((i32)grid.y - scale_mode_grid_y) * tm->tile_size;
-        tm->brush.size.y = clamp(tm->brush.size.y, tm->tile_size, MAX_BRUSH_SIZE);
+        tm->brush.size.x = (f32)(abs((i32)grid.x - scale_mode_grid_x + 1) * tm->tile_size);
+        tm->brush.size.x = (f32)(clamp((u32)tm->brush.size.x, tm->tile_size, MAX_BRUSH_SIZE));
+        tm->brush.size.y = (f32)(abs((i32)grid.y - scale_mode_grid_y) * tm->tile_size);
+        tm->brush.size.y = (f32)(clamp((u32)tm->brush.size.y, tm->tile_size, MAX_BRUSH_SIZE));
     }
 
     // Place tile
     if (input_is_mouse_down(&state->input.mouse, MB_LEFT)) {
-        u32 start_gridx = grid.x;
-        u32 start_gridy = grid.y;
+        u32 start_gridx = (u32)grid.x;
+        u32 start_gridy = (u32)grid.y;
 
         u16 brush_row_tiles = (u16)(tm->brush.size.y / tm->tile_size);
         u16 brush_col_tiles = (u16)(tm->brush.size.x / tm->tile_size);
 
         for (size_t i = 0; i < brush_row_tiles; ++i) {
             for (size_t j = 0; j < brush_col_tiles; ++j) {
-                u32 curx = start_gridx + j;
-                u32 cury = start_gridy + i;
+                u32 curx = start_gridx + (u32)j;
+                u32 cury = start_gridy + (u32)i;
                 size_t idx = (size_t)((curx * tm->tile_size) + cury);
 
                 tm->tiles[idx] = (Tile){
                     .src = tm->brush.src,
                     .dst =
                         {
-                            .x = curx * tm->tile_size,
-                            .y = cury * tm->tile_size,
+                            .x = (f32)(curx * tm->tile_size),
+                            .y = (f32)(cury * tm->tile_size),
                             .width = tm->tile_size,
                             .height = tm->tile_size,
                         },
@@ -147,7 +145,7 @@ static void update_edit_mode(void)
 
     // --- Delete tile ----------------------------------------------------------------------------
     if (input_is_mouse_down(&state->input.mouse, MB_RIGHT)) {
-        Vector2 grid = screenp_to_gridp(state->input.mouse.pos_px, tm->tile_size);
+        Vector2 grid = screenp_to_gridp(state->input.mouse.pos_px, (u8)tm->tile_size);
         size_t idx = (size_t)((grid.x * tm->tile_size) + grid.y);
         tm->tiles[idx].src = (Rectangle){0};
     }
@@ -159,12 +157,12 @@ static void render_edit_mode_grid(void)
 
     for (size_t i = 0; i < MAX_NUM_TILES; ++i) {
         u32 x = i % MAP_COL_TILES;
-        u32 y = i / MAP_COL_TILES;
+        u32 y = (u32)(i / MAP_COL_TILES);
 
         DrawRectangleLinesEx(
             (Rectangle){
-                .x = x * tm->tile_size,
-                .y = y * tm->tile_size,
+                .x = (f32)(x * tm->tile_size),
+                .y = (f32)(y * tm->tile_size),
                 .width = tm->tile_size,
                 .height = tm->tile_size,
             },
@@ -202,7 +200,7 @@ static void render_edit_mode_ui(void)
     }
 
     // --- Reset player ---------------------------------------------------------------------------
-    if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 10.0f), UI_PADDING},
+    if (ui_draw_image_button((Vector2){(f32)GetScreenWidth() - ((32.0f - UI_PADDING) * 10.0f), UI_PADDING},
                              32.0f,
                              "assets/textures/recycle-solid-full.png",
                              "Reset Player")) {
@@ -210,7 +208,7 @@ static void render_edit_mode_ui(void)
     }
 
     // --- Trash level ----------------------------------------------------------------------------
-    if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 8.0f), UI_PADDING},
+    if (ui_draw_image_button((Vector2){(f32)GetScreenWidth() - ((32.0f - UI_PADDING) * 8.0f), UI_PADDING},
                              32.0f,
                              "assets/textures/trash-solid-full.png",
                              "Trash level")) {
@@ -218,7 +216,7 @@ static void render_edit_mode_ui(void)
     }
 
     // --- Load level -----------------------------------------------------------------------------
-    if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 6.0f), UI_PADDING},
+    if (ui_draw_image_button((Vector2){(f32)GetScreenWidth() - ((32.0f - UI_PADDING) * 6.0f), UI_PADDING},
                              32.0f,
                              "assets/textures/folder-open-solid-full.png",
                              "Load level")) {
@@ -231,7 +229,7 @@ static void render_edit_mode_ui(void)
     }
 
     // --- Save level -----------------------------------------------------------------------------
-    if (ui_draw_image_button((Vector2){GetScreenWidth() - ((32.0f - UI_PADDING) * 4.0f), UI_PADDING},
+    if (ui_draw_image_button((Vector2){(f32)GetScreenWidth() - ((32.0f - UI_PADDING) * 4.0f), UI_PADDING},
                              32.0f,
                              "assets/textures/floppy-disk-solid-full.png",
                              "Save level")) {
@@ -244,7 +242,7 @@ static void render_edit_mode_ui(void)
     }
 
     // --- Exit -----------------------------------------------------------------------------------
-    if (ui_draw_image_button((Vector2){GetScreenWidth() - 32.0f - UI_PADDING, UI_PADDING},
+    if (ui_draw_image_button((Vector2){(f32)GetScreenWidth() - 32.0f - UI_PADDING, UI_PADDING},
                              32.0f,
                              "assets/textures/door-open-solid-full.png",
                              "Quit")) {
@@ -273,8 +271,8 @@ static bool update_edit_mode_tileset(void)
 
     f32 mouse_relx = state->input.mouse.pos_px.x - ts->pos.x * SCALE;
     f32 mouse_rely = state->input.mouse.pos_px.y - ts->pos.y * SCALE;
-    ts->hovered_tile.x = (u32)floorf(mouse_relx / ts->tile_size / SCALE);
-    ts->hovered_tile.y = (u32)floorf(mouse_rely / ts->tile_size / SCALE);
+    ts->hovered_tile.x = floorf(mouse_relx / ts->tile_size / SCALE);
+    ts->hovered_tile.y = floorf(mouse_rely / ts->tile_size / SCALE);
 
     // --- Set brush  -----------------------------------------------------------------------------
     if (input_is_mouse_pressed(&state->input.mouse, MB_LEFT)) {
@@ -287,12 +285,12 @@ static bool update_edit_mode_tileset(void)
             static i32 scale_mode_grid_y = 0;
 
             Vector2 grid = screenp_to_gridp((Vector2){state->input.mouse.pos_px.x, state->input.mouse.pos_px.y},
-                                            state->active_level->tilemap.tile_size);
+                                            (u8)state->active_level->tilemap.tile_size);
 
-            tm->brush.src.x = abs((i32)grid.x - scale_mode_grid_x + 1) * tm->tile_size;
-            tm->brush.src.x = clamp(tm->brush.size.x, tm->tile_size, MAX_BRUSH_SIZE);
-            tm->brush.src.y = abs((i32)grid.y - scale_mode_grid_y) * tm->tile_size;
-            tm->brush.src.y = clamp(tm->brush.size.y, tm->tile_size, MAX_BRUSH_SIZE);
+            tm->brush.src.x = (f32)(abs((i32)grid.x - scale_mode_grid_x + 1) * tm->tile_size);
+            tm->brush.src.x = (f32)(clamp((u32)tm->brush.size.x, tm->tile_size, MAX_BRUSH_SIZE));
+            tm->brush.src.y = (f32)(abs((i32)grid.y - scale_mode_grid_y) * tm->tile_size);
+            tm->brush.src.y = (f32)(clamp((u32)tm->brush.size.y, tm->tile_size, MAX_BRUSH_SIZE));
             tm->brush.src.width = tm->tileset.tile_size;
             tm->brush.src.height = tm->tileset.tile_size;
             tm->brush.size.x = tm->brush.src.width;
@@ -350,23 +348,23 @@ static void render_edit_mode_brush(void)
     Tilemap* tm = &state->active_level->tilemap;
 
     Vector2 grid = screenp_to_gridp((Vector2){state->input.mouse.pos_px.x, state->input.mouse.pos_px.y},
-                                    state->active_level->tilemap.tile_size);
+                                    (u8)state->active_level->tilemap.tile_size);
 
     Rectangle dst = {0};
 
-    u32 start_gridx = grid.x;
-    u32 start_gridy = grid.y;
+    u32 start_gridx = (u32)grid.x;
+    u32 start_gridy = (u32)grid.y;
 
-    u8 brush_col_tiles = tm->brush.size.x / tm->tile_size;
-    u8 brush_row_tiles = tm->brush.size.y / tm->tile_size;
+    u8 brush_col_tiles = (u8)(tm->brush.size.x / tm->tile_size);
+    u8 brush_row_tiles = (u8)(tm->brush.size.y / tm->tile_size);
 
     for (size_t i = 0; i < brush_row_tiles; ++i) {
         for (size_t j = 0; j < brush_col_tiles; ++j) {
-            u32 curx = (start_gridx + j) * tm->tile_size;
-            u32 cury = (start_gridy + i) * tm->tile_size;
+            u32 curx = (start_gridx + (u32)j) * tm->tile_size;
+            u32 cury = (start_gridy + (u32)i) * tm->tile_size;
 
-            dst.x = curx;
-            dst.y = cury;
+            dst.x = (f32)curx;
+            dst.y = (f32)cury;
             dst.width = tm->tile_size;
             dst.height = tm->tile_size;
 

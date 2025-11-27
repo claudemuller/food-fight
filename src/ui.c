@@ -4,6 +4,7 @@
 #include "level.h"
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
+#include "raygui/floating_window.h"
 #include "raygui/gui_window_file_dialog.h"
 #include "raygui/raygui.h"
 
@@ -27,7 +28,7 @@ bool ui_is_hovering(const Vector2 p, Rectangle r)
 void render_debug_ui(GameState* state)
 {
     Tilemap* tm = &state->active_level->tilemap;
-    u32 map_w = tm->tiles_wide * tm->tile_size;
+    // u32 map_w = tm->tiles_wide * tm->tile_size;
     Font* font = assetmgr_get_font("main");
 
     DrawTextEx(*font,
@@ -52,7 +53,7 @@ void render_debug_ui(GameState* state)
     Vector2 mpos = GetMousePosition();
 
     Vector2 renpos = mpos;
-    if (renpos.x > GetScreenWidth() - 255) {
+    if (renpos.x > (f32)GetScreenWidth() - 255) {
         renpos.x -= 280;
     }
     renpos.y = mpos.y - 55;
@@ -62,7 +63,7 @@ void render_debug_ui(GameState* state)
 
     DrawTextEx(*font, TextFormat("screen_pos: %.2f x %.2f", mpos.x, mpos.y), renpos, 18, 1.0f, PALEBLUE_D);
 
-    Vector2 wpos = screenp_to_worldp(mpos, &state->camera, GetScreenWidth(), GetScreenHeight());
+    Vector2 wpos = screenp_to_worldp(mpos, &state->camera, (f32)GetScreenWidth(), (f32)GetScreenHeight());
     DrawTextEx(*font,
                TextFormat("world_pos: %.2f x %.2f", wpos.x, wpos.y),
                (Vector2){
@@ -73,7 +74,7 @@ void render_debug_ui(GameState* state)
                1.0f,
                PALEBLUE_D);
 
-    Vector2 grid = worldp_to_gridp((Vector2){mpos.x, mpos.y}, tm->tile_size);
+    Vector2 grid = worldp_to_gridp((Vector2){mpos.x, mpos.y}, (u8)tm->tile_size);
 
     DrawTextEx(*font,
                TextFormat("grid_pos: %f x %f", grid.x, grid.y),
@@ -92,10 +93,12 @@ void message_box_content(Vector2 position, Vector2 scroll)
     GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 100 + scroll.y, 100, 25}, "Button 2");
 }
 
-void message_box(const char* title, const char* msg)
+void message_box(const char* title, const char* _)
 {
     Vector2 window_position = {10, 10};
     Vector2 window_size = {200, 400};
+    Vector2 scroll = {200, 400};
+
     GuiWindowFloating(
         &window_position, &window_size, false, false, false, &message_box_content, (Vector2){140, 320}, &scroll, title);
 }
@@ -119,10 +122,10 @@ bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id,
     };
 
     if (ui_is_hovering(GetMousePosition(), dst)) {
-        f32 txt_len = MeasureText(hint, UI_HINT_SIZE);
+        f32 txt_len = (f32)MeasureText(hint, UI_HINT_SIZE);
         f32 x = pos.x + (size * 0.5f) - (txt_len * 0.5f);
         f32 y = pos.y + size + 10.0f;
-        DrawText(hint, x, y, UI_HINT_SIZE, PALEBLUE_D);
+        DrawText(hint, (i32)x, (i32)y, UI_HINT_SIZE, PALEBLUE_D);
 
         DrawRectangleLinesEx(dst, 2.0f, RED);
 
@@ -134,8 +137,8 @@ bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id,
     DrawRectangleRec(dst, (Color){0, 150, 0, 100});
 
     Rectangle src = {
-        .width = tex->width,
-        .height = tex->height,
+        .width = (f32)tex->width,
+        .height = (f32)tex->height,
     };
 
     DrawTexturePro(*tex, src, dst, (Vector2){0}, 0.0f, WHITE);
