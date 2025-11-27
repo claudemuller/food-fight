@@ -85,55 +85,18 @@ void ui_render_debug_ui(GameState* state)
                UI_TEXT_SIZE,
                1.0f,
                PALEBLUE_D);
-
-    ui_message_box("test", "test");
 }
-
-// void message_box_content(Vector2 position, Vector2 scroll)
-// {
-//     GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 50 + scroll.y, 100, 25}, "Button 1");
-//     GuiButton((Rectangle){position.x + 20 + scroll.x, position.y + 100 + scroll.y, 100, 25}, "Button 2");
-// }
-
-static bool show_msg_box = true;
 
 void ui_message_box(const char* title, const char* msg)
 {
-    if (show_msg_box) {
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
-
-        // TODO: make spacing more dynamic and padding a fixed val
-
-        Rectangle wrect = {250, 200, 300, 150};
-        GuiWindowBox(wrect, title);
-
-        DrawText(msg, (i32)wrect.x + 20, (i32)wrect.y + 40, 20, BLACK);
-
-        if (GuiButton((Rectangle){wrect.x + 40, wrect.y + 90, 100, 40}, "OK")) {
-            show_msg_box = false;
-        }
-        // if (GuiButton((Rectangle){wrect.x + 160, wrect.y + 90, 100, 40}, "No")) {
-        //     // result = false;
-        //     show_msg_box = false;
-        // }
-    }
-
-    // Vector2 window_position = {10, 10};
-    // Vector2 window_size = {200, 400};
-    // Vector2 scroll = {200, 400};
-    // bool minimized = false;
-    // bool moving = false;
-    // bool resizing = false;
-
-    // GuiWindowFloating(&window_position,
-    //                   &window_size,
-    //                   &minimized,
-    //                   &moving,
-    //                   &resizing,
-    //                   &message_box_content,
-    //                   (Vector2){140, 320},
-    //                   &scroll,
-    //                   title);
+    // TODO: make dynamic based on text
+    Rectangle bounds = {
+        .x = (f32)GetScreenWidth() * 0.5f,
+        .y = (f32)GetScreenHeight() * 0.5f,
+        .width = 200,
+        .height = 100,
+    };
+    GuiMessageBox(bounds, title, msg, "OK");
 }
 
 bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id, const char* hint)
