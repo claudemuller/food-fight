@@ -98,9 +98,19 @@ void message_box(const char* title, const char* _)
     Vector2 window_position = {10, 10};
     Vector2 window_size = {200, 400};
     Vector2 scroll = {200, 400};
+    bool minimized = false;
+    bool moving = false;
+    bool resizing = false;
 
-    GuiWindowFloating(
-        &window_position, &window_size, false, false, false, &message_box_content, (Vector2){140, 320}, &scroll, title);
+    GuiWindowFloating(&window_position,
+                      &window_size,
+                      &minimized,
+                      &moving,
+                      &resizing,
+                      &message_box_content,
+                      (Vector2){140, 320},
+                      &scroll,
+                      title);
 }
 
 bool ui_draw_image_button(const Vector2 pos, const f32 size, const char* tex_id, const char* hint)
